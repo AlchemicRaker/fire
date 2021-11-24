@@ -1,0 +1,42 @@
+
+cc65 transpiles your c code and outputs it into four segments
+You can redirect which segments it outputs to, which is important for banking
+Any code with does not require initialization can easily be banked:
+    Switch to the bank associated with the symbol before accessing it.
+Any code which requires initialization will need special handling, detailed below.
+
+CODE:
+    default segment for the C "runtime"
+        this is simply two functions we call at startup: zerobss and copydata
+    default segment for your C code
+    no initialization, can be easily banked
+    located in PRG ROM space
+RODATA:
+    default segment for const data in your C code
+    no initialization, can be easily banked
+    located in PRG ROM space
+BSS:
+    default segment for rw data (variables) that defaults to a value of 0
+    requires initialization, filling the BSS address range with $00
+        zerobss handles this only for the "BSS" segment
+    located in RAM (or PRG RAM if available)
+DATA:
+    default segment for rw data (variables) that have initial values
+    requires initialization, copying initial values from the data "load" point to the data "run" point
+        copydata handles this only for the "DATA" segment
+    located in RAM (or PRG RAM if available) (marked with "run" in config)
+    initial values located in PRG ROM space (marked with "load" in config)
+
+if you wish to bank BSS and DATA, you must initialize the ranges yourself:
+    set "define = yes" on those segments in the config
+    for each banked segment (BSSN and DATAN for example) you must initialize it yourself:
+        zero the addresses from __BSSN_RUN__ to __BSSN_RUN__ + __BSSN_SIZE__
+        copy __DATAN_SIZE_ addresses from __DATAN_LOAD__ to __DATAN_RUN__
+
+if you wish to save data (eg in PRG RAM with battery backup):
+    check before initializing these addresses, or you may overwrite existing save data
+
+if you want c code to run in its own bank...
+#pragma code-name ("CODE_BANK_2")
+#pragma rodata-name ("CODE_BANK_2")
+
