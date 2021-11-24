@@ -16,20 +16,11 @@ void main (void) {
     wait_for_vblank_profile();
     write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
-    write_ppu_address(0, 0);
-    
 #ifdef DATA_SUPPORT
     push_data_bank(demo_map_bank);
 #endif
-    y = 0;
-    while(y<30){
-        x = 0;
-        while(x<32){
-            write_ppu_data(demo_map[x+(y*32)]);
-            ++x;
-        }
-        ++y;
-    }
+    write_ppu_address(0, 0);
+    write_ppu_data_nam(demo_map);
 #ifdef DATA_SUPPORT
     pop_data_bank();
 #endif

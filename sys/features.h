@@ -31,6 +31,7 @@ void write_ppu_address_raw(long unsigned int address);
 
 void write_ppu_data(char value);
 void write_ppu_data_char(char length, char *souce);
+void write_ppu_data_nam(char *souce);
 // void write_ppu_data_long(unsigned long length, char *souce);
 
 void wait_for_vblank();

@@ -152,8 +152,7 @@ redi:
 
     jsr popa
     tax ; x counts down to 0
-
-    ldy #$00 ; y starts at 0
+    ldy #$00
 
 @loop:
     lda (redi),Y
@@ -162,38 +161,41 @@ redi:
     dex
     bne @loop
     
-    lda #%00001110
-    sta PPU_MASK
-
-    ; jmp incsp3
     rts
 .endproc
 
-; .proc _write_ppu_data_long
-; .export _write_ppu_data_long
-;     ; jsr pushax
+.proc _write_ppu_data_nam
+.export _write_ppu_data_nam
 
-;     sta redi
-;     stx redi+1
-
-;     jsr popa
-;     tax ; x counts down to 0
-
-;     ldy #$00 ; y starts at 0
-
-; @loop:
-;     lda (redi),Y
-;     sta PPU_DATA
-;     iny
-;     dex
-;     bne @loop
+    sta redi
+    stx redi+1
     
-;     lda #%00001110
-;     sta PPU_MASK
+    ldx #$00 ; loop through 30 y rows
+@loop_row:
+    ldy #$00
+@loop_col:
+    lda (redi),Y
+    sta PPU_DATA
 
-;     ; jmp incsp3
-;     rts
-; .endproc
+    iny
+    cpy #$20
+    bne @loop_col
+
+    clc
+    lda redi
+    adc #$20 ; advance the pointer by 32
+    sta redi
+    bcc @nocarry
+    inc redi+1
+@nocarry:
+
+    inx
+    cpx #$1E ; 30 y rows
+    bne @loop_row
+    
+    rts
+.endproc
+
 
 .endif ; .ifdef C_SUPPORT
 
