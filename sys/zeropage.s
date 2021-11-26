@@ -1,5 +1,8 @@
 .segment "ZEROPAGE"
 
+ptrf: .res 2 ; a zp pointer for this template
+.export ptrf
+
 .ifdef C_SUPPORT
     ; --C support--
     .export __STARTUP__:absolute=1

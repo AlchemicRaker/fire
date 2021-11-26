@@ -22,7 +22,7 @@ void write_ppu_mask_raw(char mask_flags);
 
 char read_ppu_status();
 
-void write_oam_addr(long unsigned int address);
+// void write_oam_addr(long unsigned int address);
 
 void write_ppu_scroll(char x, char y);
 
@@ -36,11 +36,14 @@ void write_ppu_data_char(char length, char *souce);
 void write_ppu_data_nam(char *souce);
 void write_ppu_data_fill(char value);
 void write_ppu_data_copy_area_raw(char *source, char width, char height, long unsigned int nt_start);
-#define write_ppu_data_copy_area(source, source_x, source_y, width, height, nt_start) write_ppu_data_copy_area_raw(source + source_x + (source_y*32), width, height, nt_start);
+#define write_ppu_data_copy_area(source, source_x, source_y, width, height, nt_start) write_ppu_data_copy_area_raw(source + source_x + (source_y*32), width, height, nt_start)
 void write_ppu_data_fill_area(char value, char width, char height, long unsigned int nt_start);
 
 void wait_for_vblank();
 void wait_for_vblank_profile();
+
+void write_oam_mirror_raw(char x, char attributes, char tile_index, char y, long unsigned int sprite_address);
+#define write_oam_mirror(sprite_index, tile_index, x, y, attributes, palette) write_oam_mirror_raw(x, attributes | palette, tile_index,  y,  0x0200 | (sprite_index << 2))
 
 // constants used as options:
 

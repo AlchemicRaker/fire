@@ -5,6 +5,8 @@
 extern char hello_lang[];
 extern char demo_map[];
 extern char demo_map_bank;
+extern char nmi_oam_enable;
+#pragma zpsym ("nmi_oam_enable");
 
 unsigned char i=127;
 unsigned char j=126;
@@ -23,7 +25,7 @@ void draw_demo(void) {
 #ifdef DATA_SUPPORT
     pop_data_bank();
 #endif
-    write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_HIDE_SPRITE | MASK_SHOW_LEFT_SPRITE);
+    write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
     write_ppu_scroll(0, 0);
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 }
@@ -33,14 +35,14 @@ void draw_char(char c) {
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
     write_ppu_address(0x2000, 0, 0);
     write_ppu_data_fill(c);
-    write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_HIDE_SPRITE | MASK_SHOW_LEFT_SPRITE);
+    write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
     write_ppu_scroll(0, 0);
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 }
 
-void sample(char *source, char width, char height, long unsigned int nt_start) {
+// void sample(char *source, char width, char height, long unsigned int nt_start) {
 
-}
+// }
 
 void main (void) {
 
@@ -54,17 +56,25 @@ void main (void) {
         x = i % 24;
         y = 12 + i % 13;
         drawto = ppu_address(0x2000, x, y);
-        wait_for_vblank_profile();
+        // wait_for_vblank_profile();
+        while(nmi_oam_enable == 0x02) {
+            i = i;
+        }
         
         // copy a small area into the nametable
         write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
         write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
-        write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, drawto);
-        write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_HIDE_SPRITE | MASK_SHOW_LEFT_SPRITE);
+        write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, ppu_address(0x2000, x, y));
+        write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
         write_ppu_scroll(0, 0);
         write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 
         write_ppu_scroll(0, 0);
+
+        write_oam_mirror(1, 0x11, i, 16, 0, 0);
+        write_oam_mirror(2, 0x11, i+16, 16, 0, 0);
+        write_oam_mirror(3, 0x11, i+32, 16, 0, 0);
+        nmi_oam_enable = 0x02;
 
 #ifdef DATA_SUPPORT
         push_data_bank(1);

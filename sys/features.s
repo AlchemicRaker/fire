@@ -35,27 +35,27 @@ redi:
 .export _write_ppu_ctrl_raw
     sta PPU_CTRL
     rts
-.endproc
+.endproc ; .proc _write_ppu_ctrl_raw
 
 .proc _write_ppu_mask_raw
 .export _write_ppu_mask_raw
     sta PPU_MASK
     rts
-.endproc
+.endproc ; .proc _write_ppu_mask_raw
 
 .proc _read_ppu_status
 .export _read_ppu_status
     lda PPU_STATUS
     ldx #$00
     rts
-.endproc
+.endproc ; .proc _read_ppu_status
 
-.proc _write_oam_addr
-.export _write_oam_addr
-    stx OAM_ADDR
-    sta OAM_ADDR
-    rts
-.endproc
+; .proc _write_oam_addr
+; .export _write_oam_addr
+;     stx OAM_ADDR
+;     sta OAM_ADDR
+;     rts
+; .endproc
 
 .proc _write_ppu_scroll
 .export _write_ppu_scroll
@@ -63,20 +63,20 @@ redi:
     jsr popa
     sta PPU_SCROLL
     rts
-.endproc
+.endproc ; .proc _write_ppu_scroll
 
 .proc _write_ppu_address_raw
 .export _write_ppu_address_raw
     stx PPU_ADDR
     sta PPU_ADDR
     rts
-.endproc
+.endproc ; .proc _write_ppu_address_raw
 
 .proc _write_ppu_data
 .export _write_ppu_data
     sta PPU_DATA
     rts
-.endproc
+.endproc ; .proc _write_ppu_data
 
 .proc _wait_for_vblank
 .export _wait_for_vblank
@@ -85,7 +85,7 @@ redi:
     bpl @loop
 
     rts
-.endproc
+.endproc ; .proc _wait_for_vblank
 
 .proc _wait_for_vblank_profile
 .export _wait_for_vblank_profile
@@ -104,7 +104,7 @@ redi:
 
     lda #$00
     rts
-.endproc
+.endproc ; .proc _wait_for_vblank_profile
 
 ;;;;;;;;
 
@@ -114,7 +114,7 @@ redi:
     stx PPU_ADDR
     sta PPU_ADDR
     rts
-.endproc
+.endproc ; .proc _write_ppu_address_xy
 
 .proc _write_ppu_scroll_xy
 .export _write_ppu_scroll_xy
@@ -123,7 +123,7 @@ redi:
     jsr popa
     sta PPU_SCROLL
     rts
-.endproc
+.endproc ; .proc _write_ppu_scroll_xy
 
 .proc _write_ppu_status_off
 .export _write_ppu_status_off
@@ -132,7 +132,7 @@ redi:
     sta PPU_MASK
 
     rts
-.endproc
+.endproc ; .proc _write_ppu_status_off
 
 .proc _write_ppu_status_on
 .export _write_ppu_status_on
@@ -141,7 +141,7 @@ redi:
     sta PPU_MASK
 
     rts
-.endproc
+.endproc ; .proc _write_ppu_status_on
 
 .proc _write_ppu_data_char
 .export _write_ppu_data_char
@@ -162,7 +162,7 @@ redi:
     bne @loop
     
     rts
-.endproc
+.endproc ; .proc _write_ppu_data_char
 
 .proc _write_ppu_data_nam
 .export _write_ppu_data_nam
@@ -194,7 +194,7 @@ redi:
     bne @loop_row
     
     rts
-.endproc
+.endproc ; .proc _write_ppu_data_nam
 
 .proc _write_ppu_data_fill
 .export _write_ppu_data_fill
@@ -213,7 +213,7 @@ redi:
     bne @loop_row
     
     rts
-.endproc
+.endproc ; .proc _write_ppu_data_fill
 
 .proc _write_ppu_data_copy_area_raw
 .export _write_ppu_data_copy_area_raw
@@ -279,7 +279,7 @@ redi:
     ldy sp
 
     jmp incsp4
-.endproc
+.endproc ; .proc _write_ppu_data_copy_area_raw
 
 .proc _write_ppu_data_fill_area
 .export _write_ppu_data_fill_area
@@ -341,7 +341,28 @@ redi:
     ldy sp
 
     jmp incsp3
-.endproc
+.endproc ; .proc _write_ppu_data_fill_area
+
+.proc _write_oam_mirror_raw
+.export _write_oam_mirror_raw
+    sta redi
+    stx redi+1
+
+    ldy #$03
+    lda (sp),y
+    sta (redi),y
+    dey
+    lda (sp),y
+    sta (redi),y
+    dey
+    lda (sp),y
+    sta (redi),y
+    dey
+    lda (sp),y
+    sta (redi),y
+
+    jmp incsp4
+.endproc ; .proc _write_oam_mirror_raw
 
 
 .endif ; .ifdef C_SUPPORT

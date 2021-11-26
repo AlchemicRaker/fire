@@ -10,6 +10,8 @@ PPU_SCROLL  =$2005
 PPU_ADDR    =$2006
 PPU_DATA    =$2007
 
+.importzp ptrf
+
 .segment "PRG_INIT_1"
 .proc startup_handler
 .export _exit, startup_handler
@@ -114,7 +116,7 @@ vblank2_loop:
     ; lda #$08
     ; sta PPU_DATA
 
-    ; load palette
+    ; load BG palette
     lda #$3F
     sta PPU_ADDR
     lda #$00
@@ -130,7 +132,7 @@ vblank2_loop:
     sta PPU_DATA
 
     lda #$3F
-    sta PPU_DATA
+    sta PPU_DATA ; unused
     lda #$01
     sta PPU_DATA
     lda #$1B
@@ -139,13 +141,79 @@ vblank2_loop:
     sta PPU_DATA
 
     lda #$3F
-    sta PPU_DATA
+    sta PPU_DATA ; unused
     lda #$20
     sta PPU_DATA
     lda #$10
     sta PPU_DATA
     lda #$01
     sta PPU_DATA
+
+    lda #$3F
+    sta PPU_DATA ; unused
+    lda #$20
+    sta PPU_DATA
+    lda #$10
+    sta PPU_DATA
+    lda #$01
+    sta PPU_DATA
+
+    ; load sprite palettes
+    
+
+    lda #$3F
+    sta PPU_DATA ; unused
+    lda #$20
+    sta PPU_DATA
+    lda #$10
+    sta PPU_DATA
+    lda #$01
+    sta PPU_DATA
+
+    lda #$3F
+    sta PPU_DATA ; unused
+    lda #$10
+    sta PPU_DATA
+    lda #$10
+    sta PPU_DATA
+    lda #$01
+    sta PPU_DATA
+
+    lda #$3F
+    sta PPU_DATA ; unused
+    lda #$01
+    sta PPU_DATA
+    lda #$10
+    sta PPU_DATA
+    lda #$01
+    sta PPU_DATA
+
+    lda #$3F
+    sta PPU_DATA ; unused
+    lda #$2B
+    sta PPU_DATA
+    lda #$10
+    sta PPU_DATA
+    lda #$01
+    sta PPU_DATA
+
+    ; prime the sprites to be below the screen
+    lda #$00
+    sta ptrf
+    lda #$02
+    sta ptrf+1
+
+    clc 
+    ldy #$00
+    ; ldx #$FF
+
+clear_sprites_loop:
+    lda #$FF
+    sta (ptrf),Y
+    tya 
+    adc #$04
+    tay 
+    bcc clear_sprites_loop
 
     ; TODO: enable NMI
 
