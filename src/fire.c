@@ -8,6 +8,18 @@ extern char demo_map_bank;
 extern char nmi_oam_enable;
 #pragma zpsym ("nmi_oam_enable");
 
+typedef struct {
+    unsigned char y;
+    unsigned char tile_index;
+    unsigned char attributes;
+    unsigned char x;
+} sprite_t;
+
+extern sprite_t oam_shadow[];
+
+extern unsigned int* cptr;
+#pragma zpsym ("cptr");
+
 unsigned char i=127;
 unsigned char j=126;
 unsigned char k;
@@ -51,11 +63,24 @@ void main (void) {
 #ifdef DATA_SUPPORT
     push_data_bank(demo_map_bank);
 #endif
+    i=0;
+    // cptr = (unsigned int *) &oam_shadow[i];
+    // ((sprite_t *)0x0200)->y = 16;
+    // ((sprite_t *)cptr)->y = 16;
+    // ((sprite_t *)cptr)->tile_index = 0x11;
+    // ((sprite_t *)cptr)->x = i;
+    oam_shadow[0].y = 16;
+    oam_shadow[0].tile_index = 0x11;
+    oam_shadow[1].y = 17;
+    oam_shadow[1].tile_index = 0x11;
+    oam_shadow[2].y = 18;
+    oam_shadow[2].tile_index = 0x11;
+    write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
     while (1){ 
         // doing stupid math that's slow, calculate it before the vblank
         x = i % 24;
         y = 12 + i % 13;
-        drawto = ppu_address(0x2000, x, y);
+        drawto = compose_ppu_address(0x2000, x, y);
         // wait_for_vblank_profile();
         while(nmi_oam_enable == 0x02) {
             i = i;
@@ -64,16 +89,19 @@ void main (void) {
         // copy a small area into the nametable
         write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
         write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
-        write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, ppu_address(0x2000, x, y));
+        write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, compose_ppu_address(0x2000, x, y));
         write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
         write_ppu_scroll(0, 0);
         write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 
         write_ppu_scroll(0, 0);
 
-        write_oam_mirror(1, 0x11, i, 16, 0, 0);
-        write_oam_mirror(2, 0x11, i+16, 16, 0, 0);
-        write_oam_mirror(3, 0x11, i+32, 16, 0, 0);
+        // write_oam_shadow(1, 0x11, i, 16, 0, 0);
+        // write_oam_shadow(2, 0x11, i+16, 16, 0, 0);
+        // write_oam_shadow(3, 0x11, i+32, 16, 0, 0);
+        oam_shadow[0].x = i;
+        oam_shadow[1].x = i+16;
+        oam_shadow[2].x = i+32;
         nmi_oam_enable = 0x02;
 
 #ifdef DATA_SUPPORT

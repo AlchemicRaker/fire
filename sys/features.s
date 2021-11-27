@@ -24,8 +24,9 @@
 ; void __near__ write_ppu_data (char length, unsigned char *souce)
 ; ---------------------------------------------------------------
 .segment "ZEROPAGE"
-redi:
-    .res 2
+redi: .res 2
+_cptr: .res 2
+.export _cptr
 
 .segment "PRG_FIXED"
 
@@ -343,8 +344,8 @@ redi:
     jmp incsp3
 .endproc ; .proc _write_ppu_data_fill_area
 
-.proc _write_oam_mirror_raw
-.export _write_oam_mirror_raw
+.proc _write_oam_shadow_raw
+.export _write_oam_shadow_raw
     sta redi
     stx redi+1
 
