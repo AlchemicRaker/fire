@@ -14,27 +14,40 @@ void select_sample_bank(char);
 #endif
 
 //PPU direct access
-#define write_ppu_ctrl(nametable, increment, sprite_bank, background_bank, sprite_size, nmi) {*((char *)0x2000) = nametable | increment | sprite_bank | background_bank | sprite_size | nmi;}
-#define write_ppu_mask(background, sprite) {*((char *)0x2001) = background | sprite;}
+#define PPU_CTRL (*(volatile char *)0x2000)
+#define write_ppu_ctrl(nametable, increment, sprite_bank, background_bank, sprite_size, nmi) { \
+    PPU_CTRL = (nametable) | (increment) | (sprite_bank) | (background_bank) | (sprite_size) | (nmi); \
+}
+
+#define PPU_MASK (*(volatile char *)0x2001)
+#define write_ppu_mask(background, sprite) { \
+    PPU_MASK = (background) | (sprite); \
+}
 
 char read_ppu_status();
 
-#define write_ppu_scroll(x, y) {*((char *)0x2005) = x;*((char *)0x2005) = y;}
-#define PPU_SCROLL *((char *)0x2005)
+#define PPU_SCROLL (*(volatile char *)0x2005)
+#define write_ppu_scroll(x, y) { \
+    PPU_SCROLL = (x); \
+    PPU_SCROLL = (y); \
+}
+
 
 #define compose_ppu_address(nt, x, y) (nt | ((y << 5) + x))
 
 void write_ppu_address_raw(long unsigned int address);
 #define write_ppu_address(nt, x, y) write_ppu_address_raw(compose_ppu_address(nt, x, y))
 
-#define write_ppu_data(value) {*((char*)0x2007) = value;}
-#define PPU_DATA *((char *)0x2007)
+#define PPU_DATA (*(volatile char *)0x2007)
+#define write_ppu_data(value) { \
+    PPU_DATA = (value); \
+}
 
 void write_ppu_data_char(char length, char *souce);
 void write_ppu_data_nam(char *souce);
 void write_ppu_data_fill(char value);
 void write_ppu_data_copy_area_raw(char *source, char width, char height, long unsigned int nt_start);
-#define write_ppu_data_copy_area(source, source_x, source_y, width, height, nt_start) write_ppu_data_copy_area_raw(source + source_x + (source_y*32), width, height, nt_start)
+#define write_ppu_data_copy_area(source, source_x, source_y, width, height, nt_start) write_ppu_data_copy_area_raw((source) + (source_x) + ((source_y)*32), (width), (height), (nt_start))
 void write_ppu_data_fill_area(char value, char width, char height, long unsigned int nt_start);
 
 void wait_for_vblank();
