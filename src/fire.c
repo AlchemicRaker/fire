@@ -2,6 +2,10 @@
 #include "gray.h"
 #include "features.h"
 
+#ifdef LIB_FAMISTUDIO
+#include "famistudio.h"
+#endif
+
 extern char hello_lang[];
 extern char demo_map[];
 extern char demo_map_bank;
@@ -19,6 +23,9 @@ extern sprite_t oam_shadow[];
 
 extern unsigned int* cptr;
 #pragma zpsym ("cptr");
+
+extern unsigned char music_data_journey_to_silius[];
+extern unsigned char sounds[];
 
 unsigned char i=127;
 unsigned char j=126;
@@ -76,6 +83,15 @@ void main (void) {
     oam_shadow[2].y = 18;
     oam_shadow[2].tile_index = 0x11;
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
+
+
+#ifdef LIB_FAMISTUDIO
+    // music!
+    // famistudio_sfx_init(&sounds);
+    famistudio_init(FAMISTUDIO_PLATFORM_NTSC, &music_data_journey_to_silius);
+    famistudio_music_play(0);
+#endif
+    
     while (1){ 
         // doing stupid math that's slow, calculate it before the vblank
         x = i % 24;
@@ -103,6 +119,7 @@ void main (void) {
         oam_shadow[1].x = i+16;
         oam_shadow[2].x = i+32;
         nmi_oam_enable = 0x02;
+        // famistudio_update();
 
 #ifdef DATA_SUPPORT
         push_data_bank(1);

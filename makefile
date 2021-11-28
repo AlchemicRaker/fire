@@ -22,7 +22,9 @@ SOURCEDIR = src
 BUILDDIR = build
 SYSDIR = sys
 RESOURCEDIR = res
+LIBDIR = lib
 
+LIBS = #FAMITONE5 #FAMISTUDIO
 
 
 
@@ -72,25 +74,33 @@ MAPDIR = $(SYSDIR)/$(MAPPER_STRIP)
 MAPCFG = $(MAPDIR)/layout.cfg
 MAPBUILDDIR = $(BUILDDIR)/$(MAPPER_STRIP)
 MAPFILE = $(MAPBUILDDIR)/map.txt
+SYSBUILDDIR = $(BUILDDIR)/$(MAPPER_STRIP)/sys
 RESBUILDDIR = $(BUILDDIR)/$(MAPPER_STRIP)/res
+LIBBUILDDIR = $(BUILDDIR)/$(MAPPER_STRIP)/lib
 
 SourceToBuildPath = $(subst $(SOURCEDIR)/,$(MAPBUILDDIR)/,$1)
-SysToBuildPath = $(subst $(SYSDIR)/,$(MAPBUILDDIR)/,$1)
+SysToBuildPath = $(subst $(SYSDIR)/,$(SYSBUILDDIR)/,$1)
 MapToBuildPath = $(subst $(MAPDIR)/,$(MAPBUILDDIR)/map/,$1)
 ResToBuildPath = $(subst $(RESOURCEDIR)/,$(RESBUILDDIR)/,$1)
+LibToBuildPath = $(subst $(LIBDIR)/,$(LIBBUILDDIR)/,$1)
 
 ASMFILES = $(wildcard $(SOURCEDIR)/*.s)
 SYSFILES = $(wildcard $(SYSDIR)/*.s)
 MAPFILES = $(wildcard $(MAPDIR)/*.s)
 RESOURCEFILES = $(wildcard $(RESOURCEDIR)/*.s)
-ASMOBJECTS = $(call SourceToBuildPath,$(ASMFILES:.s=.o)) $(call SysToBuildPath,$(SYSFILES:.s=.o))
+LIBFILES = $(foreach lib,$(LIBS),$(wildcard $(LIBDIR)/$(lib).s))
+ASMOBJECTS = $(call SourceToBuildPath,$(ASMFILES:.s=.o))
+SYSOBJECTS = $(call SysToBuildPath,$(SYSFILES:.s=.o))
 ASMMAPOBJS = $(call MapToBuildPath,$(MAPFILES:.s=.o))
 ASMRESOBJS = $(call ResToBuildPath,$(RESOURCEFILES:.s=.o))
+ASMLIBOBJS = $(call LibToBuildPath,$(LIBFILES:.s=.o))
 
 # CFILES := $(wildcard $(SOURCEDIR)/*.c)
+LIBOPTS = $(foreach lib,$(LIBS),-D LIB_$(lib)=1)
 
 ifdef C_SUPPORT
-	CAOPT := -g -D C_SUPPORT=1
+	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=1
+	CCOPT := -g -Oirs --add-source $(LIBOPTS)
 	LIBRARIES := nes.lib
 	
 # CFILES := $(SOURCEDIR)/fire.c
@@ -98,7 +108,7 @@ ifdef C_SUPPORT
 	CASM := $(call SourceToBuildPath,$(CFILES:.c=.s))
 	COBJECTS := $(call SourceToBuildPath,$(CFILES:.c=.o))
 else
-	CAOPT := -g
+	CAOPT := -g $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=0
 	LIBRARIES :=
 	CFILES :=
 	CASM :=
@@ -157,7 +167,7 @@ build-n163:
 
 build-rom: directories $(ROMFILE)
 
-directories: $(BUILDDIR) $(MAPBUILDDIR) $(MAPBUILDDIR)/map $(RESBUILDDIR)
+directories: $(BUILDDIR) $(MAPBUILDDIR) $(MAPBUILDDIR)/map $(RESBUILDDIR) $(LIBBUILDDIR) $(SYSBUILDDIR)
 
 CLEANMAPFILES = $(wildcard $(MAPBUILDDIR)/*)
 CLEANMAPDIR = $(wildcard $(MAPBUILDDIR))
@@ -186,31 +196,41 @@ $(MAPBUILDDIR)/map: $(MAPBUILDDIR)
 	
 $(RESBUILDDIR): $(MAPBUILDDIR)
 	$(if $(wildcard $(MAPBUILDDIR)/res),,mkdir $(subst /,\,$@) $(info making $@))
+	
+$(LIBBUILDDIR): $(MAPBUILDDIR)
+	$(if $(wildcard $(MAPBUILDDIR)/lib),,mkdir $(subst /,\,$@) $(info making $@))
+	
+$(SYSBUILDDIR): $(MAPBUILDDIR)
+	$(if $(wildcard $(MAPBUILDDIR)/sys),,mkdir $(subst /,\,$@) $(info making $@))
 
 # all expected build objects -> nes file
-$(DBGFILE) $(ROMFILE) $(MAPOUT): $(ASMOBJECTS) $(ASMMAPOBJS) $(ASMRESOBJS) $(COBJECTS) $(CASM) | directories
-	ld65 -o $(ROMFILE) -m $(MAPFILE) --dbgfile $(DBGFILE) -C $(MAPCFG) $(ASMOBJECTS) $(ASMRESOBJS) $(ASMMAPOBJS) $(COBJECTS) $(LIBRARIES)
+$(DBGFILE) $(ROMFILE) $(MAPOUT): $(ASMOBJECTS) $(SYSOBJECTS) $(ASMMAPOBJS) $(ASMRESOBJS) $(ASMLIBOBJS) $(COBJECTS) $(CASM) | directories
+	ld65 -o $(ROMFILE) -m $(MAPFILE) --dbgfile $(DBGFILE) -C $(MAPCFG) $(ASMOBJECTS) $(SYSOBJECTS) $(ASMRESOBJS) $(ASMMAPOBJS) $(ASMLIBOBJS) $(COBJECTS) $(LIBRARIES)
 
 # assembly source files -> build objects
-$(MAPBUILDDIR)/%.o: $(SOURCEDIR)/%.s
+$(MAPBUILDDIR)/%.o: $(SOURCEDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 	
 # system assembly source files -> build objects
-$(MAPBUILDDIR)/%.o: $(SYSDIR)/%.s
+$(SYSBUILDDIR)/%.o: $(SYSDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@ -I $(MAPDIR)
 	
 # mapper assembly source files -> build objects
-$(MAPBUILDDIR)/map/%.o: $(MAPDIR)/%.s
+$(MAPBUILDDIR)/map/%.o: $(MAPDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 	
 # resource assembly source files -> build objects
-$(RESBUILDDIR)/%.o: $(RESOURCEDIR)/%.s
+$(RESBUILDDIR)/%.o: $(RESOURCEDIR)/%.s makefile
+	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
+	
+# library assembly source files -> build objects
+$(LIBBUILDDIR)/%.o: $(LIBDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 
 # assembled c -> build objects
-$(MAPBUILDDIR)/%.o: $(MAPBUILDDIR)/%.s
+$(MAPBUILDDIR)/%.o: $(MAPBUILDDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 
 # c source -> assembled c
-$(MAPBUILDDIR)/%.s: $(SOURCEDIR)/%.c
-	cc65 -g -Oirs $< --add-source -o $@ --code-name PRG_FIXED $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -I $(SYSDIR)
+$(MAPBUILDDIR)/%.s: $(SOURCEDIR)/%.c makefile
+	cc65 $< $(CCOPT) -o $@ --code-name PRG_FIXED $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -I $(SYSDIR) -I $(LIBDIR)
