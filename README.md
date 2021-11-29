@@ -1,8 +1,8 @@
 # Fire NES Template - WIP
 
-A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). ~~The template includes an extendable, fully commented, community-standard NMI routine (OAM copy, APU update, controller read).~~ Basic graphics loading is included for demo purposes only, as these tend to be rather custom implementations anyway.
+A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). A demo is included in the `src` directory to get you started with some bank switching and on-screen graphics.
 
-**THIS PROJECT IS WIP, features may not yet be as described in the README**
+> THIS PROJECT IS WIP, features may not yet be as described in the README
 
 ## Project Goal
 
