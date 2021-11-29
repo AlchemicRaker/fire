@@ -4,6 +4,18 @@ A thin NES template that builds against multiple mappers and includes the most f
 
 **THIS PROJECT IS WIP, features may not yet be as described in the README**
 
+## Project Goal
+
+This project's goal is to provide a baseline NES template useful to both novice and advanced developers. This affects many aspects of this template:
+
+* **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
+* **Library system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
+* **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
+* **Mapper-agnostic banking**. Organize your code and data into banks without having to implement your own bank-switching routines. Easily swap between available PRG banks, including **far calling** between banks.
+* **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if desired.
+* **Highly commented system** files for advanced developers to modify as they desire.
+* **Boilerplate vectors** with unused `_CUSTOM` segments ready for your game's startup, NMI, and IRQ assembly code.
+
 ## Project Organization
 
 The central code for your game, as well as this template's demo, are located in "src". Vectors for startup, nmi, and irq, as well as any features provided by this template, are all in "sys". Anything mapper specific is located in a subfolder, e.g. "sys/mmc3" for mmc3-specific code and configuration.
@@ -26,7 +38,7 @@ Now you should have a `fire.nes` rom you can open in an emulator of your choice.
 
 > If you have set up VSCode, Mesen-X (add it to your PATH!), and installed the Alchemy65 extension, you may use `ctrl+shift+b` to build the project, and `F5` to run it.
 
-## Mappers and Features
+## Cross-Mapper Design
 
 For mappers that support PRG banking one or more banks, the first available bank, the "**PRG BANK**", will be used for code banking. If available, the second and third banks will be called the "**DATA BANK**" and "**SAMPLE BANK**" respectively. In actuality, all of these banks are functionally equivalent. However, this template provides extra features for each of these banks, if they are available.
 
@@ -56,6 +68,32 @@ In all cases, **PRG_FIXED** is used for static code. If **PRG BANK** isn't avail
 #### GTROM notes
 
 GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
+
+## Vector Design
+
+Startup, NMI, and IRQ vectors contain very common bits of code, but also contain code that is highly game-specific. We understand how critical timing is in these places, so we have provided that common code (as described below) and left the rest open for you.
+
+### Startup Vector Implementation
+
+1. `PRG_INIT_1`
+    * Boilerplate initialization of NES state, including zeroing out the ZP
+    * If C is enabled, sp and the necessary BSS and DATA ranges will be initialized
+    * Waits through two vblanks and ~~initializes the PPU~~ (_currently zeroes the nametable and loads sample palettes_)
+    * ~~Initializes OAM~~ (_currently sets all sprites in OAM shadow to an off-screen y value_)
+1. `PRG_INIT_MAP` is used to initialize any mapper-specific state
+1. `PRG_INIT_CUSTOM` is an empty segment where your game-specific startup code can go
+1. `PRG_INIT_2` wraps up initialization and jumps to your game's `main()` or `main:`
+
+### NMI Vector Implementation
+
+1. `NMI_HANDLE_1` saves the CPU registers and runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
+1. `NMI_HANDLE_CUSTOM` is an empty segment where your game-specific vblank code can go.
+1. `nmi_hook()` is called in C, again for your own game-specific vblank code. (requires the `C_NMI_HOOK` option)
+1. `NMI_HANDLE_2` restores the CPU registers and exits NMI.
+
+### IRQ Vector Implementation
+
+(incomplete)
 
 ## C Features
 
@@ -108,7 +146,7 @@ You may directly switch the selected sample banks.
 
 ## ASM Features
 
-### PRG BANK "farjsr" and "farjmp" (todo)
+### PRG BANK ~~"farjsr" and "farjmp"~~ (_todo_)
 
 This is the assembly equivalent of the C "farcall" feature described above. "farjsr" and "farjmp" are provided as a macros, and require a single symbol as a target. For instance:
 

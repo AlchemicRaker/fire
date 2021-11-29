@@ -1,22 +1,53 @@
 #!/usr/bin/make -f
+# Usage:
+# make
+#   builds the project with the default MAPPER (selected below)
+# make build-nrom
+#   builds the project with the specified mapper (build-mmc3, build-uxrom, etc)
+# make build-all
+#   builds the project with all of the available mappers
+# make clean
 
-# set rom name, mapper, and enable/disable C
+
+# name of the output rom, eg "fire.nes"
 TITLE := fire
 
-# Mappers:
-#   nrom
-#   uxrom
-#x  gtrom
-#   mmc1
-#   mmc3
-#   fme-7
-#   mmc5
-#   vrc6
-#   vrc7
-#   n163
-MAPPER := nrom
+# Build supports C and ASM out of the box
+C_SUPPORT := 1 # Comment out this line to disable C support
 
-C_SUPPORT := 1 # Comment this line entirely to disable C support
+# Include these community libraries in your project
+LIBS = 
+# FAMITONE5 - audio driver for FamiTracker
+# FAMISTUDIO - audio driver for FamiStudio
+
+# Include the small customizations to the template
+OPTIONS = C_NMI_HOOK
+# C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_CUSTOM segment
+
+# Select the mapper you want to use for your default builds
+MAPPER := nrom
+# nrom, uxrom, mmc1, mmc3, fme-7, mmc5, vrc6, vrc7, n163, (gtrom)
+# nrom - the simplest mapper, with no prg or chr banks and no additional features
+# uxrom - common family of mappers with one window of bankable PRG
+# mmc1 - common mapper with one window of bankable PRG and two windows of bankable CHR
+# mmc3 - common mapper with two windows of bankable PRG and six windows of bankable CHR
+# fme-7 - powerful mapper with four windows of bankable PRG, eight windows of bankable CHR, 512KB of PRG RAM, and expansion audio
+# mmc5 - powerful mapper with four windows of bankable PRG, eight windows of bankable CHR, 128KB of PRG RAM, expansion audio, and more
+# vrc6 - mapper with two windows of bankable PRG, eight windows of bankable CHR, and expansion audio
+# vrc7 - mapper with three windows of bankable PRG, eight windows of bankable CHR, and expansion audio
+# n163 - mapper with three windows of bankable PRG, twelve windows of bankable CHR, and expansion audio
+# gtrom - homebrew mapper with bankable PRG and CHR, not yet supported
+
+ALL_MAPPERS := nrom uxrom gtrom mmc1 mmc3 fme-7 mmc5 vrc6 vrc7 n163
+# when using build-all, build all of these mappers
+# recommended: 
+#   leave this list alone until you no longer wish to abandon compatability with a particular mapper
+#   for instance, once you start using PRG banking, remove nrom
+
+
+
+
+# not recommended to edit these root directories, but you can if you want
 
 SOURCEDIR = src
 BUILDDIR = build
@@ -24,11 +55,9 @@ SYSDIR = sys
 RESOURCEDIR = res
 LIBDIR = lib
 
-LIBS = #FAMITONE5 #FAMISTUDIO
-
-
-
-# shouldn't need to edit past this point
+#####################                                        #####################
+##################### shouldn't need to edit past this point #####################
+#####################                                        #####################
 
 MAPPER_STRIP = $(strip $(MAPPER))
 
@@ -97,10 +126,11 @@ ASMLIBOBJS = $(call LibToBuildPath,$(LIBFILES:.s=.o))
 
 # CFILES := $(wildcard $(SOURCEDIR)/*.c)
 LIBOPTS = $(foreach lib,$(LIBS),-D LIB_$(lib)=1)
+OPTIONFLAGS = $(foreach opt,$(OPTIONS),-D $(opt)=1)
 
 ifdef C_SUPPORT
-	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=1
-	CCOPT := -g -Oirs --add-source $(LIBOPTS)
+	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=1 $(OPTIONFLAGS)
+	CCOPT := -g -Oirs --add-source $(LIBOPTS) $(OPTIONFLAGS)
 	LIBRARIES := nes.lib
 	
 # CFILES := $(SOURCEDIR)/fire.c
@@ -108,7 +138,7 @@ ifdef C_SUPPORT
 	CASM := $(call SourceToBuildPath,$(CFILES:.c=.s))
 	COBJECTS := $(call SourceToBuildPath,$(CFILES:.c=.o))
 else
-	CAOPT := -g $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=0
+	CAOPT := -g $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=0 $(OPTIONFLAGS)
 	LIBRARIES :=
 	CFILES :=
 	CASM :=
@@ -133,7 +163,7 @@ endif
 
 all: build-rom
 
-build-all: build-nrom build-uxrom build-gtrom build-mmc1 build-mmc3 build-fme-7 build-mmc5 build-vrc6 build-vrc7 build-n163
+build-all: $(foreach mapper,$(ALL_MAPPERS),build-$(mapper))
 
 build-nrom:
 	make build-rom TITLE=$(TITLE)-nrom MAPPER=nrom

@@ -59,9 +59,18 @@ void draw_char(char c) {
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 }
 
-// void sample(char *source, char width, char height, long unsigned int nt_start) {
-
-// }
+#ifdef C_NMI_HOOK
+void nmi_hook() {
+    // copy a small area into the nametable
+    write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
+    write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
+    write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, compose_ppu_address(0x2000, x, y));
+    write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
+    write_ppu_scroll(0, 0);
+    write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
+    write_ppu_scroll(0, 0);
+}
+#endif
 
 void main (void) {
 
@@ -98,19 +107,12 @@ void main (void) {
         y = 12 + i % 13;
         drawto = compose_ppu_address(0x2000, x, y);
         // wait_for_vblank_profile();
+        nmi_oam_enable = 0x02;
         while(nmi_oam_enable == 0x02) {
             i = i;
         }
         
-        // copy a small area into the nametable
-        write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
-        write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
-        write_ppu_data_copy_area(demo_map, 9, 4, 7, 4, compose_ppu_address(0x2000, x, y));
-        write_ppu_mask(MASK_SHOW_BG | MASK_SHOW_LEFT_BG, MASK_SHOW_SPRITE | MASK_SHOW_LEFT_SPRITE);
-        write_ppu_scroll(0, 0);
-        write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_0000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
-
-        write_ppu_scroll(0, 0);
+        //updates to OAM during game logic
 
         // write_oam_shadow(1, 0x11, i, 16, 0, 0);
         // write_oam_shadow(2, 0x11, i+16, 16, 0, 0);
@@ -118,7 +120,6 @@ void main (void) {
         oam_shadow[0].x = i;
         oam_shadow[1].x = i+16;
         oam_shadow[2].x = i+32;
-        nmi_oam_enable = 0x02;
         // famistudio_update();
 
 #ifdef DATA_SUPPORT
