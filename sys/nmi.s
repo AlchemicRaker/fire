@@ -20,6 +20,8 @@ nmi_oam_enable: .res 1
 
     lda PPU_STATUS ; prevent multiple NMIs from being triggered in a single frame
 
+
+.segment "NMI_HANDLE_2" ; save registers, copy OAM (if _nmi_oam_enable is set)
     lda #$00
     cmp nmi_oam_enable
     beq after_oam ; if _nmi_oam_enable == $00, then don't copy OAM. normal "enable" is $02...
@@ -31,7 +33,7 @@ after_oam:
 ; .segment "NMI_HANDLE_CUSTOM"
 ; game-specific NMI implementation
 
-.segment "NMI_HANDLE_2" ; cleanup and return
+.segment "NMI_HANDLE_3" ; cleanup and return
 
 .ifdef C_NMI_HOOK ; call c _nmi_hook()
 .import _nmi_hook

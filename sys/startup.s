@@ -229,6 +229,7 @@ clear_sprites_loop:
 
 
 .segment "PRG_INIT_2"
+    cli
 .ifdef C_SUPPORT
     jmp _main
 ; -------------

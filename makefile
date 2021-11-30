@@ -16,16 +16,18 @@ TITLE := fire
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-LIBS = 
+MODULES = IRQ_SCREEN_SCROLL
 # FAMITONE5 - audio driver for FamiTracker
 # FAMISTUDIO - audio driver for FamiStudio
+# IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ (todo)
+# SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
 
 # Include the small customizations to the template
-OPTIONS = C_NMI_HOOK
+OPTIONS := C_NMI_HOOK
 # C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_CUSTOM segment
 
 # Select the mapper you want to use for your default builds
-MAPPER := nrom
+MAPPER := mmc5
 # nrom, uxrom, mmc1, mmc3, fme-7, mmc5, vrc6, vrc7, n163, (gtrom)
 # nrom - the simplest mapper, with no prg or chr banks and no additional features
 # uxrom - common family of mappers with one window of bankable PRG
@@ -61,39 +63,32 @@ LIBDIR = lib
 
 MAPPER_STRIP = $(strip $(MAPPER))
 
+ifeq ($(MAPPER_STRIP),nrom)
+OPTIONS := $(OPTIONS) MAPPER_NROM
+endif
 ifeq ($(MAPPER_STRIP),uxrom)
-BANK_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_UXROM BANK_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),mmc1)
-BANK_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_MMC1 BANK_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),mmc3)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_MMC3 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),mmc5)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
-SAMPLE_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_MMC5 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),fme-7)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
-SAMPLE_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_FME7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT #IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),vrc6)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_VRC6 BANK_SUPPORT DATA_SUPPORT #IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),vrc7)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
-SAMPLE_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_VRC7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT #IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),n163)
-BANK_SUPPORT := 1
-DATA_SUPPORT := 1
-SAMPLE_SUPPORT := 1
+OPTIONS := $(OPTIONS) MAPPER_N163 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT #IRQ_SUPPORT
 endif
 
 
@@ -117,7 +112,7 @@ ASMFILES = $(wildcard $(SOURCEDIR)/*.s)
 SYSFILES = $(wildcard $(SYSDIR)/*.s)
 MAPFILES = $(wildcard $(MAPDIR)/*.s)
 RESOURCEFILES = $(wildcard $(RESOURCEDIR)/*.s)
-LIBFILES = $(foreach lib,$(LIBS),$(wildcard $(LIBDIR)/$(lib).s))
+LIBFILES = $(foreach lib,$(MODULES),$(wildcard $(LIBDIR)/$(lib).s))
 ASMOBJECTS = $(call SourceToBuildPath,$(ASMFILES:.s=.o))
 SYSOBJECTS = $(call SysToBuildPath,$(SYSFILES:.s=.o))
 ASMMAPOBJS = $(call MapToBuildPath,$(MAPFILES:.s=.o))
@@ -125,7 +120,7 @@ ASMRESOBJS = $(call ResToBuildPath,$(RESOURCEFILES:.s=.o))
 ASMLIBOBJS = $(call LibToBuildPath,$(LIBFILES:.s=.o))
 
 # CFILES := $(wildcard $(SOURCEDIR)/*.c)
-LIBOPTS = $(foreach lib,$(LIBS),-D LIB_$(lib)=1)
+LIBOPTS = $(foreach lib,$(MODULES),-D $(lib)=1)
 OPTIONFLAGS = $(foreach opt,$(OPTIONS),-D $(opt)=1)
 
 ifdef C_SUPPORT
@@ -253,7 +248,7 @@ $(MAPBUILDDIR)/map/%.o: $(MAPDIR)/%.s makefile
 $(RESBUILDDIR)/%.o: $(RESOURCEDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 	
-# library assembly source files -> build objects
+# module assembly source files -> build objects
 $(LIBBUILDDIR)/%.o: $(LIBDIR)/%.s makefile
 	ca65 $< $(CAOPT) $(BANKOPT) $(DATAOPT) $(SAMPLEOPT) -o $@
 

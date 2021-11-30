@@ -1,6 +1,6 @@
 # Fire NES Template - WIP
 
-A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). A demo is included in the `src` directory to get you started with some bank switching and on-screen graphics.
+A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). A demo is included in the "src" and "res" directories to get you started with some bank switching and on-screen graphics.
 
 > THIS PROJECT IS WIP, features may not yet be as described in the README
 
@@ -9,7 +9,7 @@ A thin NES template that builds against multiple mappers and includes the most f
 This project's goal is to provide a baseline NES template useful to both novice and advanced developers. This affects many aspects of this template:
 
 * **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
-* **Library system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
+* **Module system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
 * **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
 * **Mapper-agnostic banking**. Organize your code and data into banks without having to implement your own bank-switching routines. Easily swap between available PRG banks, including **far calling** between banks.
 * **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if desired.
@@ -50,18 +50,18 @@ In all cases, **PRG_FIXED** is used for static code. If **PRG BANK** isn't avail
 
 ### Mapper Configuration Overview
 
-| Mapper | PRG BANK | DATA BANK | SAMPLE BANK | PRG FIXED | Notes |
-| ------ | -------- | --------- | ---------- | ------ | ----- |
-| NROM | - | - | - | $8000 | |
-| UxROM | $8000 | - | - | $C000 | |
-| MMC1 | $8000 | - | - | $C000 | |
-| MMC3 | $8000 | $A000 | - | $C000 | PRG mode 0 |
-| MMC5 | $8000 | $A000 | $C000 | $E000 | PRG mode 3 |
-| FME-7 | $8000 | $A000 | $C000 | $E000 | |
-| VRC6 | $8000 | $C000 | - | $E000 | (VRC6a) |
-| VRC7 | $8000 | $A000 | $C000 | $E000 | |
-| N163 | $8000 | $A000 | $C000 | $E000 | |
-| ~~GTROM~~ | $8000 | $A000 | $C000 | $E000 | plans below |
+| Mapper | PRG BANK | DATA BANK | SAMPLE BANK | PRG FIXED | IRQ | Notes |
+| ------ | -------- | --------- | ----------- | --------- | --- | ----- |
+| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | $8000 | No | |
+| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | $8000 | - | - | $C000 | No | |
+| [MMC1](https://wiki.nesdev.org/w/index.php?title=MMC1) | $8000 | - | - | $C000 | No | |
+| [MMC3](https://wiki.nesdev.org/w/index.php?title=MMC3) | $8000 | $A000 | - | $C000 | Yes | PRG mode 0 |
+| [MMC5](https://wiki.nesdev.org/w/index.php?title=MMC5) | $8000 | $A000 | $C000 | $E000 | Yes | PRG mode 3 |
+| [FME-7](https://wiki.nesdev.org/w/index.php?title=Sunsoft_FME-7) | $8000 | $A000 | $C000 | $E000 | Yes | |
+| [VRC6](https://wiki.nesdev.org/w/index.php?title=VRC6) | $8000 | $C000 | - | $E000 | Yes | (VRC6a) |
+| [VRC7](https://wiki.nesdev.org/w/index.php?title=VRC7) | $8000 | $A000 | $C000 | $E000 | Yes | |
+| [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | $8000 | $A000 | $C000 | $E000 | Yes | |
+| ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | $8000 | $A000 | $C000 | $E000 | No | plans below |
 
 > Many of these mappers contain configurable layouts. This template assumes that banked prg rom will use the lower addresses, and static prg rom will use the higher addresses. When possible, the highest number of prg banks has been chosen (see "notes" column).
 
@@ -80,22 +80,37 @@ Startup, NMI, and IRQ vectors contain very common bits of code, but also contain
     * If C is enabled, sp and the necessary BSS and DATA ranges will be initialized
     * Waits through two vblanks and ~~initializes the PPU~~ (_currently zeroes the nametable and loads sample palettes_)
     * ~~Initializes OAM~~ (_currently sets all sprites in OAM shadow to an off-screen y value_)
-1. `PRG_INIT_MAP` is used to initialize any mapper-specific state
-1. `PRG_INIT_CUSTOM` is an empty segment where your game-specific startup code can go
-1. `PRG_INIT_2` wraps up initialization and jumps to your game's `main()` or `main:`
+1. `PRG_INIT_MAP` is used to initialize any mapper-specific state.
+1. `PRG_INIT_LIB` is reserved to initialize any modules you choose to include, or is empty by default.
+1. `PRG_INIT_CUSTOM` is an empty segment where your game-specific startup code can go.
+1. `PRG_INIT_2` wraps up initialization and jumps to your game's `main()` or `main:`.
 
 ### NMI Vector Implementation
 
-1. `NMI_HANDLE_1` saves the CPU registers and runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
+1. `NMI_HANDLE_1` saves the CPU registers.
+1. `NMI_HANDLE_TIMING` is both for you and for modules to set up precisely timed things using NMI, and is empty by default. Be sure that any code in here runs at constant speed (no branching, that may throw off other timing sensitive code). For instance, IRQ may use CPU Cycle Counting that needs a predictable starting point.
+1. `NMI_HANDLE_2` runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
+1. `NMI_HANDLE_LIB` is reserved for use by any modules you choose to include, or is empty by default.
 1. `NMI_HANDLE_CUSTOM` is an empty segment where your game-specific vblank code can go.
 1. `nmi_hook()` is called in C, again for your own game-specific vblank code. (requires the `C_NMI_HOOK` option)
-1. `NMI_HANDLE_2` restores the CPU registers and exits NMI.
+1. `NMI_HANDLE_3` restores the CPU registers and exits NMI.
+
+The limited vertical blank time is valuable. Therefore, the only code included by default is a very standard and flexible OAMDMA. By setting a value (probably `$02`) to `nmi_oam_enable`, OAMDMA will run on that page during the next NMI.
+
+> We know NMI cycles are valuable. Any modules that put code into NMI will prioritize doing work and calculations _prior_ to NMI.
 
 ### IRQ Vector Implementation
 
-(incomplete)
+1. `IRQ_HANDLE_1` is used to track the address of the IRQ vector, and is otherwise empty.
+1. `IRQ_HANDLE_LIB` is reserved for use by any modules you choose to include, or is empty by default.
+1. `IRQ_HANDLE_CUSTOM` is an empty segment where your game-specific irq code.
+1. `IRQ_HANDLE_2` calls `rti`.
 
-## C Features
+> We know IRQ cycles are valuable. The baseline IRQ is empty, containing only the required `rti`.
+
+> The most common use for IRQ is for creating a single horizontal scroll split. We provide a mapper-generic way of achieving this with the "IRQ_SCREEN_SCROLL" module.
+
+## C Environment Features
 
 ### PRG BANK "farcall"
 
@@ -144,7 +159,7 @@ You may directly switch the selected sample banks.
 
     void select_sample_bank(char);
 
-## ASM Features
+## ASM Environment Features
 
 ### PRG BANK ~~"farjsr" and "farjmp"~~ (_todo_)
 
@@ -153,4 +168,27 @@ This is the assembly equivalent of the C "farcall" feature described above. "far
     do_pause:
         farjsr pause_menu
 
-(readme is a work in progress)
+## Available Modules
+
+### IRQ Screen Scroll Module (IRQ_SCREEN_SCROLL)
+
+IRQs may work by counting cpu cycles or scanlines, and techniques exist for triggering multiple IRQs per frame. IRQs can be used for many things, and can require incredible precision and tuning. For this reason, we have left the IRQ segment empty, and you may include the "IRQ_SCREEN_SCROLL" module for the most common use case of IRQ: a horizontal scroll split.
+
+    // Calls available through IRQ_SCREEN_SCROLL
+
+    irq_screen_scroll(scanline, x, y);
+    // schedules a screen scroll at the scanline
+    // this will persist across frames until disabled
+
+    irq_screen_scroll_disable();
+    // disables the screen scroll
+
+### ~~FamiTone5 Module (FAMITONE5)~~
+
+(_todo_)
+
+### FamiStudio Module (FAMISTUDIO)
+
+This includes the NES Sound Engine for the [FamiStudio NES Music Editor](https://famistudio.org/).
+
+Please see "lib/famistudio.s" for the extensive configuration options available for this engine.
