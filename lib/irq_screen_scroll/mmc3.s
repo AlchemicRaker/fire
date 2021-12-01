@@ -13,10 +13,13 @@ irq_ss_counter: .res 1
 nothing_to_do:
 
 .segment "IRQ_HANDLE_LIB"
-    sta $E000; IRQ disable
     sta irq_ss_save_a
+.repeat 53
+    nop
+.endrepeat
     lda irq_ss_scroll_x
     sta $2005 ; PPU_SCROLL
     lda irq_ss_scroll_y
     sta $2005 ; PPU_SCROLL
     lda irq_ss_save_a
+    sta $E000; IRQ disable

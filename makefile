@@ -27,7 +27,7 @@ OPTIONS := C_NMI_HOOK
 # C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_CUSTOM segment
 
 # Select the mapper you want to use for your default builds
-MAPPER := mmc5
+MAPPER := nrom
 # nrom, uxrom, mmc1, mmc3, fme-7, mmc5, vrc6, vrc7, n163, (gtrom)
 # nrom - the simplest mapper, with no prg or chr banks and no additional features
 # uxrom - common family of mappers with one window of bankable PRG
@@ -79,7 +79,7 @@ ifeq ($(MAPPER_STRIP),mmc5)
 OPTIONS := $(OPTIONS) MAPPER_MMC5 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),fme-7)
-OPTIONS := $(OPTIONS) MAPPER_FME7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT #IRQ_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_FME7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),vrc6)
 OPTIONS := $(OPTIONS) MAPPER_VRC6 BANK_SUPPORT DATA_SUPPORT #IRQ_SUPPORT
