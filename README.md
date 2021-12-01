@@ -69,6 +69,44 @@ In all cases, **PRG_FIXED** is used for static code. If **PRG BANK** isn't avail
 
 GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
 
+### CHR Configuration Overview
+
+| Mapper | 8K Select | 4K Select | 2K Select | 1K Select | CHR Windows |
+| ------ | --------- | --------- | --------- | --------- | ----------- |
+| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | - | N/A |
+| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | - | - | - | - | N/A |
+| [MMC1](https://wiki.nesdev.org/w/index.php?title=MMC1) | Yes | Yes | - | - | 4K+4K or 8K |
+| [MMC3](https://wiki.nesdev.org/w/index.php?title=MMC3) | Yes | Yes | Yes | Sprite _or_ Background | 2Kx2 + 1Kx4 |
+| [MMC5](https://wiki.nesdev.org/w/index.php?title=MMC5) | Yes | Yes | Yes | Yes | 1Kx8 (and more) |
+| [FME-7](https://wiki.nesdev.org/w/index.php?title=Sunsoft_FME-7) | Yes | Yes | Yes | Yes | 1Kx8 |
+| [VRC6](https://wiki.nesdev.org/w/index.php?title=VRC6) | Yes | Yes | Yes | Yes | 1Kx8 |
+| [VRC7](https://wiki.nesdev.org/w/index.php?title=VRC7) | Yes | Yes | Yes | Yes | 1Kx8 |
+| [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | Yes | Yes | Yes | Yes | 1Kx8 + 1Kx4(NT) |
+| ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | Yes | - | - | - | 8K |
+
+> MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". The `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) and `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) options are available for this, you may define _one_ of these in the OPTIONS in the makefile.
+
+These functions are available based on the table above. The availability of these are cumulative, so calling `select_chr_4k_1000(bank);` will work as expected for MMC1, and will be equivalent to calling `select_chr_1k_1000(bank); select_chr_1k_1400(bank+1); select_chr_1k_1800(bank+2); select_chr_1k_1C00(bank+3);` for FME-7.
+
+    select_chr_8k_0000(bank)
+    
+    select_chr_4k_0000(bank)
+    select_chr_4k_1000(bank)
+    
+    select_chr_2k_0000(bank)
+    select_chr_2k_0800(bank)
+    select_chr_2k_1000(bank)
+    select_chr_2k_1800(bank)
+
+    select_chr_1k_0000(bank)
+    select_chr_1k_0400(bank)
+    select_chr_1k_0800(bank)
+    select_chr_1k_0C00(bank)
+    select_chr_1k_1000(bank)
+    select_chr_1k_1400(bank)
+    select_chr_1k_1800(bank)
+    select_chr_1k_1C00(bank)
+
 ## Vector Design
 
 Startup, NMI, and IRQ vectors contain very common bits of code, but also contain code that is highly game-specific. We understand how critical timing is in these places, so we have provided that common code (as described below) and left the rest open for you.
