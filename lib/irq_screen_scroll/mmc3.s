@@ -14,7 +14,7 @@ nothing_to_do:
 
 .segment "IRQ_HANDLE_LIB"
     sta irq_ss_save_a
-.repeat 53
+.repeat 51
     nop
 .endrepeat
     lda irq_ss_scroll_x
