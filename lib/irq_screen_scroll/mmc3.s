@@ -1,6 +1,6 @@
 .segment "ZEROPAGE"
-.export irq_ss_counter
-.export _irq_ss_counter = irq_ss_counter
+.exportzp irq_ss_counter
+.exportzp _irq_ss_counter = irq_ss_counter
 irq_ss_counter: .res 1
 
 .segment "NMI_HANDLE_LIB"

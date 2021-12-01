@@ -5,8 +5,8 @@
 .ifdef IRQ_SUPPORT
 
 .segment "ZEROPAGE"
-.export irq_ss_scroll_x, irq_ss_scroll_y, irq_ss_save_a
-.export _irq_ss_scroll_x = irq_ss_scroll_x, _irq_ss_scroll_y = irq_ss_scroll_y
+.exportzp irq_ss_scroll_x, irq_ss_scroll_y, irq_ss_save_a
+.exportzp _irq_ss_scroll_x = irq_ss_scroll_x, _irq_ss_scroll_y = irq_ss_scroll_y
 irq_ss_scroll_x: .res 1
 irq_ss_scroll_y: .res 1
 irq_ss_save_a: .res 1
