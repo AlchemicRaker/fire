@@ -80,10 +80,8 @@ void nmi_hook() {
 
 void main (void) {
 
-#ifdef IRQ_SCREEN_SCROLL
-#ifdef IRQ_SUPPORT
-    irq_screen_scroll(8*5+4, 1, 0);
-#endif
+#ifdef CHR_4K_SUPPORT
+    select_chr_4k_1000(0);
 #endif
 
     wait_for_vblank_profile();
@@ -123,6 +121,25 @@ void main (void) {
         while(nmi_oam_enable == 0x02) {
             i = i;
         }
+
+
+#ifdef IRQ_SCREEN_SCROLL
+#ifdef IRQ_SUPPORT
+        k = i & 3;
+        if(k == 0) {
+            irq_screen_scroll(8, 1, 0);
+        }
+        if(k == 1){
+            irq_screen_scroll((8*3)+4, 1, 0);
+        }
+        if(k == 2){
+            irq_screen_scroll((8*15)+4, 1, 0); // 4 scanlines into the 15th tile, set scroll to 1,0
+        }
+        if(k == 3){
+            irq_screen_scroll((8*29)+4, 1, 0);
+        }
+#endif
+#endif
         
         //updates to OAM during game logic
 

@@ -73,8 +73,8 @@ GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max c
 
 | Mapper | 8K Select | 4K Select | 2K Select | 1K Select | CHR Windows |
 | ------ | --------- | --------- | --------- | --------- | ----------- |
-| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | - | N/A |
-| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | - | - | - | - | N/A |
+| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | - | None |
+| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | - | - | - | - | None |
 | [MMC1](https://wiki.nesdev.org/w/index.php?title=MMC1) | Yes | Yes | - | - | 4K+4K or 8K |
 | [MMC3](https://wiki.nesdev.org/w/index.php?title=MMC3) | Yes | Yes | Yes | Sprite _or_ Background | 2Kx2 + 1Kx4 |
 | [MMC5](https://wiki.nesdev.org/w/index.php?title=MMC5) | Yes | Yes | Yes | Yes | 1Kx8 (and more) |
@@ -83,6 +83,8 @@ GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max c
 | [VRC7](https://wiki.nesdev.org/w/index.php?title=VRC7) | Yes | Yes | Yes | Yes | 1Kx8 |
 | [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | Yes | Yes | Yes | Yes | 1Kx8 + 1Kx4(NT) |
 | ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | Yes | - | - | - | 8K |
+
+> Todo: MMC3, MMC5, FME-7, VRC6, VRC7, N163
 
 > MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". The `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) and `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) options are available for this, you may define _one_ of these in the OPTIONS in the makefile.
 

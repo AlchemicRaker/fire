@@ -13,6 +13,36 @@ void pop_data_bank();
 void select_sample_bank(char);
 #endif
 
+#ifdef CHR_8K_SUPPORT
+void select_chr_8k_0000(char);
+#endif
+
+#ifdef CHR_4K_SUPPORT
+void select_chr_4k_0000(char);
+void select_chr_4k_1000(char);
+#endif
+
+#ifdef CHR_2K_SUPPORT
+void select_chr_2k_0000(char);
+void select_chr_2k_0800(char);
+void select_chr_2k_1000(char);
+void select_chr_2k_1800(char);
+#endif
+
+#ifdef CHR_1K_B_SUPPORT
+void select_chr_1k_0000(char);
+void select_chr_1k_0400(char);
+void select_chr_1k_0800(char);
+void select_chr_1k_0C00(char);
+#endif
+
+#ifdef CHR_1K_S_SUPPORT
+void select_chr_1k_1000(char);
+void select_chr_1k_1400(char);
+void select_chr_1k_1800(char);
+void select_chr_1k_1C00(char);
+#endif
+
 //PPU direct access
 #define PPU_CTRL (*(volatile char *)0x2000)
 #define write_ppu_ctrl(nametable, increment, sprite_bank, background_bank, sprite_size, nmi) { \

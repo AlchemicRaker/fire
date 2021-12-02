@@ -15,7 +15,7 @@
     stx databank
 
     ; this setup for mmc3
-    lda #%00000111
+    lda #(%00000111 | MMC3_CHR_A12)
     sta $8002 ; mmc3 bank select for DATA bank $A000
 
     stx $8001 ; mmc3 bank set to databank
@@ -32,7 +32,7 @@
     sta databank
 
     ; this setup for mmc3
-    ldx #%00000111
+    ldx #(%00000111 | MMC3_CHR_A12)
     stx $8002 ; mmc3 bank select for DATA bank $A000
 
     sta $8001 ; mmc3 bank set to databank
@@ -45,7 +45,7 @@
     .importzp databank
 
     ; this setup for mmc3
-    ldx #%00000111
+    ldx #(%00000111 | MMC3_CHR_A12)
     stx $8002 ; mmc3 bank select for DATA bank $A000
 
     sta $8001 ; mmc3 bank set to databank

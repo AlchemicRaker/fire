@@ -10,7 +10,7 @@
     jsr pusha
 
     ; this setup for mmc3
-    lda #%00000110
+    lda #(%00000110 | MMC3_CHR_A12)
     sta $8002 ; mmc3 bank select for PRG bank $8000
     
     ; select the new bank
@@ -24,7 +24,7 @@
     ;; restore the previous prg bank and pop it  
 
     ; this setup for mmc3      
-    lda #%00000110
+    lda #(%00000110 | MMC3_CHR_A12)
     sta $8002 ; mmc3 bank select for PRG bank $8000
 
     jsr popa
