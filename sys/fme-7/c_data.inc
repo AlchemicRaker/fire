@@ -1,7 +1,7 @@
 .proc _push_data_bank
     .export _push_data_bank
     .import pusha
-    .importzp databank
+    .importzp databank, fme7_command_shadow
 
     ;; new bank in a
     ; save a in x for a bit
@@ -16,6 +16,7 @@
 
     ; this setup for fme-7
     lda #$A
+    sta fme7_command_shadow
     sta $8000 ; fme-7 bank select for PRG bank $A000
 
     stx $A000 ; fme-7 bank set to databank
@@ -26,13 +27,14 @@
 .proc _pop_data_bank
     .export _pop_data_bank
     .import popa
-    .importzp databank
+    .importzp databank, fme7_command_shadow
 
     jsr popa
     sta databank
 
     ; this setup for fme-7
     ldx #$A
+    stx fme7_command_shadow
     stx $8000 ; fme-7 bank select for PRG bank $A000
 
     sta $A000 ; fme-7 bank set to databank
@@ -42,13 +44,14 @@
 
 .proc _select_data_bank
     .export _select_data_bank
-    .importzp databank
+    .importzp databank, fme7_command_shadow
     
     ; switch to new bank
     sta databank
 
     ; this setup for fme-7
     ldx #$A
+    stx fme7_command_shadow
     stx $8000 ; fme-7 bank select for PRG bank $A000
 
     sta $A000 ; fme-7 bank set to databank

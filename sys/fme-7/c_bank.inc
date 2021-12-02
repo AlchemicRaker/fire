@@ -1,7 +1,7 @@
 .proc _farcall
     .export _farcall
     .import pusha, popa, callptr4
-    .importzp prgbank, tmp4
+    .importzp prgbank, tmp4, fme7_command_shadow
 
     ;; store the current bank on the stack, switch to new bank
 
@@ -11,6 +11,7 @@
 
     ; this setup for fme-7
     lda #$9
+    sta fme7_command_shadow
     sta $8000 ; fme-7 bank select for PRG bank $8000
     
     ; select the new bank
@@ -25,6 +26,7 @@
 
     ; this setup for fme-7      
     lda #$9
+    sta fme7_command_shadow
     sta $8000 ; fme-7 bank select for PRG bank $8000
 
     jsr popa

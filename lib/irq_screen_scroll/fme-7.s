@@ -1,6 +1,7 @@
 .segment "ZEROPAGE"
 .exportzp irq_ss_counter, irq_ss_enable
 .exportzp _irq_ss_counter = irq_ss_counter, _irq_ss_enable = irq_ss_enable
+.importzp fme7_command_shadow
 irq_ss_counter: .res 2
 irq_ss_enable: .res 1
 
@@ -37,4 +38,6 @@ nothing_to_do:
     sta $8000
     lda #$00
     sta $A000 ; disable IRQ countdown
-    lda irq_ss_save_a
+    lda fme7_command_shadow ; restore fme-7 command
+    sta $8000
+    lda irq_ss_save_a ; restore a
