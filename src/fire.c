@@ -83,6 +83,19 @@ void main (void) {
 #ifdef CHR_4K_SUPPORT
     select_chr_4k_1000(0);
 #endif
+#ifdef CHR_2K_SUPPORT
+    select_chr_2k_0800(0);
+    select_chr_2k_1800(0);
+#endif
+#ifdef CHR_1K_B_SUPPORT
+    select_chr_1k_0400(0);
+    select_chr_1k_0C00(0);
+#endif
+#ifdef CHR_1K_S_SUPPORT
+    select_chr_1k_1400(0);
+    select_chr_1k_1C00(0);
+#endif
+
 
     wait_for_vblank_profile();
     draw_demo();

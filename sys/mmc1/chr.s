@@ -1,3 +1,5 @@
+; banks measured in 4k increments
+
 .segment "PRG_FIXED"
 .proc select_chr_8k_0000
 .export select_chr_8k_0000
