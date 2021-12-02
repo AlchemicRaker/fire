@@ -1,3 +1,7 @@
+
+.ifdef BANK_SUPPORT
+.ifdef C_SUPPORT
+
 .proc _farcall
     .export _farcall
     .import pusha, popa, callptr4
@@ -25,3 +29,6 @@
 
     rts
 .endproc ; _farcall
+
+.endif ; .ifdef C_SUPPORT
+.endif ; .ifdef BANK_SUPPORT

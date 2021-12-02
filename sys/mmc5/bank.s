@@ -1,3 +1,6 @@
+
+.ifdef C_SUPPORT
+
 .proc _farcall
     .export _farcall
     .import pusha, popa, callptr4
@@ -9,19 +12,20 @@
     lda prgbank
     jsr pusha
 
-    ; select the new bank
     lda tmp4
     sta prgbank
-    sta $E000 ; n163 bank set to prgbank
+    sta $5114 ; mmc5 bank set to prgbank
 
     ;; jump to wrapped call
     jsr callptr4
 
     ;; restore the previous prg bank and pop it  
-
+   
     jsr popa
     sta prgbank
-    sta $E000
+    sta $5114
 
     rts
 .endproc ; _farcall
+
+.endif ; .ifdef C_SUPPORT

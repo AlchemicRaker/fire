@@ -1,5 +1,6 @@
-.proc _push_data_bank
-    .export _push_data_bank
+
+.proc push_data_bank
+    .export push_data_bank, _push_data_bank = push_data_bank
     .import pusha
     .importzp databank, fme7_command_shadow
 
@@ -24,8 +25,8 @@
     rts
 .endproc ; _push_data_bank
 
-.proc _pop_data_bank
-    .export _pop_data_bank
+.proc pop_data_bank
+    .export pop_data_bank, _pop_data_bank = pop_data_bank
     .import popa
     .importzp databank, fme7_command_shadow
 
@@ -42,8 +43,8 @@
     rts
 .endproc ; _pop_data_bank
 
-.proc _select_data_bank
-    .export _select_data_bank
+.proc select_data_bank
+    .export select_data_bank, _select_data_bank = select_data_bank
     .importzp databank, fme7_command_shadow
     
     ; switch to new bank
@@ -58,3 +59,4 @@
     
     rts
 .endproc ; _select_data_bank
+

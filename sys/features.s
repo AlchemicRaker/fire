@@ -5,20 +5,20 @@
 .importzp       sp, ptr1, ptr2, tmp1, tmp2, tmp3, tmp4
 .import pushax, popa, incsp3, incsp1, incsp4
 
-.ifdef BANK_SUPPORT
-; mapper specific implementation
-.include "c_bank.inc"
-.endif ; .ifdef BANK_SUPPORT
+; .ifdef BANK_SUPPORT
+; ; mapper specific implementation
+; .include "c_bank.inc"
+; .endif ; .ifdef BANK_SUPPORT
 
-.ifdef DATA_SUPPORT
-; mapper specific implementation
-.include "c_data.inc"
-.endif ; .ifdef DATA_SUPPORT
+; .ifdef DATA_SUPPORT
+; ; mapper specific implementation
+; .include "c_data.inc"
+; .endif ; .ifdef DATA_SUPPORT
 
-.ifdef SAMPLE_SUPPORT
-; mapper specific implementation
-.include "c_sample.inc"
-.endif ; .ifdef SAMPLE_SUPPORT
+; .ifdef SAMPLE_SUPPORT
+; ; mapper specific implementation
+; .include "c_sample.inc"
+; .endif ; .ifdef SAMPLE_SUPPORT
 
 ; ---------------------------------------------------------------
 ; void __near__ write_ppu_data (char length, unsigned char *souce)

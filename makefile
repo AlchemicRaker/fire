@@ -29,7 +29,7 @@ OPTIONS := C_NMI_HOOK MMC3_1K_SPRITES
 # MMC3_1K_BACKGROUNDS - MMC3 CHR A12 inversion = 1, 1kx4 background banks, 2kx2 sprite banks
 
 # Select the mapper you want to use for your default builds
-MAPPER := fme-7
+MAPPER := nrom
 # nrom, uxrom, mmc1, mmc3, fme-7, mmc5, vrc6, vrc7, n163, (gtrom)
 # nrom - the simplest mapper, with no prg or chr banks and no additional features
 # uxrom - common family of mappers with one window of bankable PRG

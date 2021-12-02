@@ -1,5 +1,6 @@
-.proc _select_sample_bank
-    .export _select_sample_bank
+
+.proc select_sample_bank
+    .export select_sample_bank, _select_sample_bank = select_sample_bank
     .importzp samplebank, fme7_command_shadow
     
     ; switch to new bank
@@ -14,3 +15,4 @@
     
     rts
 .endproc ; _select_sample_bank
+
