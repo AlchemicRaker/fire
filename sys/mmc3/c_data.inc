@@ -1,3 +1,7 @@
+.ifndef MMC3_CHR_A12
+.error "Must include MMC3_1K_SPRITES or MMC3_1K_BACKGROUNDS in makefile OPTIONS in order to build for MMC3"
+.endif
+
 .proc _push_data_bank
     .export _push_data_bank
     .import pusha

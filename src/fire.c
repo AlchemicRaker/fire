@@ -2,7 +2,7 @@
 #include "gray.h"
 #include "features.h"
 
-#ifdef LIB_FAMISTUDIO
+#ifdef FAMISTUDIO
 #include "famistudio.h"
 #endif
 
@@ -117,7 +117,7 @@ void main (void) {
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_1000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_ENABLE);
 
 
-#ifdef LIB_FAMISTUDIO
+#ifdef FAMISTUDIO
     // music!
     // famistudio_sfx_init(&sounds);
     famistudio_init(FAMISTUDIO_PLATFORM_NTSC, &music_data_journey_to_silius);

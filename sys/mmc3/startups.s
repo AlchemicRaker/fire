@@ -1,4 +1,4 @@
-.segment "PRG_INIT_MAP"
+.segment "STARTUP_MAP"
 .import select_chr_8k_0000
     ; initialize chr banks
     lda #$00

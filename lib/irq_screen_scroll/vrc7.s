@@ -4,7 +4,7 @@
 irq_ss_counter: .res 1
 irq_ss_enable: .res 1
 
-.segment "NMI_HANDLE_TIMING"
+.segment "NMI_TIMING"
 
     lda #$00
     inc $F000 ; pause IRQ
@@ -16,7 +16,7 @@ irq_ss_enable: .res 1
     sta $F000 ; enable irq for next 
 
 
-.segment "IRQ_HANDLE_LIB"
+.segment "IRQ_LIB"
     sta irq_ss_save_a
 .repeat 14
     nop

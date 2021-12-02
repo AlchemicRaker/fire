@@ -1,4 +1,4 @@
-.ifdef LIB_FAMISTUDIO
+.ifdef FAMISTUDIO
 .segment "PRG_FIXED"
 song_journey_to_silius:
 .export song_journey_to_silius

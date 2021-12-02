@@ -1,4 +1,4 @@
-.segment "PRG_INIT_MAP"
+.segment "STARTUP_MAP"
     ; initialize chr banks
     lda #$00
 

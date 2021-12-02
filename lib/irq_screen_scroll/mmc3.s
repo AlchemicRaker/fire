@@ -3,7 +3,7 @@
 .exportzp _irq_ss_counter = irq_ss_counter
 irq_ss_counter: .res 1
 
-.segment "NMI_HANDLE_LIB"
+.segment "NMI_LIB"
     lda irq_ss_counter
     cmp #$00
     beq nothing_to_do
@@ -12,7 +12,7 @@ irq_ss_counter: .res 1
     sta $E001 ; IRQ enable
 nothing_to_do:
 
-.segment "IRQ_HANDLE_LIB"
+.segment "IRQ_LIB"
     sta irq_ss_save_a
 .repeat 51
     nop

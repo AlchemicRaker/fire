@@ -16,7 +16,7 @@ TITLE := fire
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = IRQ_SCREEN_SCROLL
+MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO
 # FAMITONE5 - audio driver for FamiTracker
 # FAMISTUDIO - audio driver for FamiStudio
 # IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ (todo)
@@ -24,7 +24,7 @@ MODULES = IRQ_SCREEN_SCROLL
 
 # Include the small customizations to the template
 OPTIONS := C_NMI_HOOK MMC3_1K_SPRITES
-# C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_CUSTOM segment
+# C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_GAME segment
 # MMC3_1K_SPRITES - MMC3 CHR A12 inversion = 0, 1kx4 sprite banks, 2kx2 background banks
 # MMC3_1K_BACKGROUNDS - MMC3 CHR A12 inversion = 1, 1kx4 background banks, 2kx2 sprite banks
 
@@ -76,14 +76,6 @@ OPTIONS := $(OPTIONS) MAPPER_MMC1 BANK_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),mmc3)
 OPTIONS := $(OPTIONS) MAPPER_MMC3 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT
-ifneq (,$(findstring MMC3_1K_SPRITES,$(OPTIONS)))
-    CAOPT := $(CAOPT) -D MMC3_CHR_A12=0 -D CHR_1K_S_SUPPORT=1
-    CCOPT := $(CCOPT) -D MMC3_CHR_A12=0 -D CHR_1K_S_SUPPORT=1
-endif
-ifneq (,$(findstring MMC3_1K_BACKGROUNDS,$(OPTIONS)))
-    CAOPT := $(CAOPT) -D MMC3_CHR_A12=128 -D CHR_1K_B_SUPPORT=1
-    CCOPT := $(CCOPT) -D MMC3_CHR_A12=128 -D CHR_1K_B_SUPPORT=1
-endif
 endif
 ifeq ($(MAPPER_STRIP),mmc5)
 OPTIONS := $(OPTIONS) MAPPER_MMC5 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
@@ -100,7 +92,6 @@ endif
 ifeq ($(MAPPER_STRIP),n163)
 OPTIONS := $(OPTIONS) MAPPER_N163 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
 endif
-
 
 ROMFILE = $(BUILDDIR)/$(TITLE).nes
 DBGFILE = $(BUILDDIR)/$(TITLE).dbg
@@ -147,6 +138,17 @@ else
 	CFILES :=
 	CASM :=
 	COBJECTS :=
+endif
+
+ifeq ($(MAPPER_STRIP),mmc3)
+ifneq (,$(findstring MMC3_1K_SPRITES,$(OPTIONS)))
+	CAOPT := $(CAOPT) -D MMC3_CHR_A12=0 -D CHR_1K_S_SUPPORT=1
+	CCOPT := $(CCOPT) -D MMC3_CHR_A12=0 -D CHR_1K_S_SUPPORT=1
+endif
+ifneq (,$(findstring MMC3_1K_BACKGROUNDS,$(OPTIONS)))
+	CAOPT := $(CAOPT) -D MMC3_CHR_A12=128 -D CHR_1K_B_SUPPORT=1
+	CCOPT := $(CCOPT) -D MMC3_CHR_A12=128 -D CHR_1K_B_SUPPORT=1
+endif
 endif
 
 ALL_OBJECTS = $(ASMOBJECTS) $(SYSOBJECTS) $(ASMMAPOBJS) $(ASMRESOBJS) $(ASMLIBOBJS) $(COBJECTS)

@@ -1,4 +1,4 @@
-.segment "PRG_INIT_MAP"
+.segment "STARTUP_MAP"
     ; initialize chr banks
     lda #%00100000 ; 8 CHR banks, vertical mirroring
     sta $B003 ; PPU Banking Style

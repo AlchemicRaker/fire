@@ -1,5 +1,5 @@
 
-.segment "IRQ_HANDLE_LIB"
+.segment "IRQ_LIB"
     sta irq_ss_save_a
 .repeat 38
     nop

@@ -4,7 +4,7 @@
 irq_ss_counter: .res 2
 irq_ss_enable: .res 1
 
-.segment "NMI_HANDLE_TIMING"
+.segment "NMI_TIMING"
     lda #$0D 
     sta $8000
     lda #$00
@@ -27,7 +27,7 @@ irq_ss_enable: .res 1
 
 nothing_to_do:
 
-.segment "IRQ_HANDLE_LIB"
+.segment "IRQ_LIB"
     sta irq_ss_save_a
     lda irq_ss_scroll_x
     sta $2005 ; PPU_SCROLL

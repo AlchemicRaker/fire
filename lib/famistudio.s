@@ -132,3 +132,6 @@ FAMISTUDIO_DPCM_OFF     = __SAMPLE_BANK_3_LOAD__ ; works with multiple banks as 
 
 .include "famistudio/famistudio_ca65.s"
 .export FAMISTUDIO_DPCM_PTR ; so songs can reference this location
+
+.segment "NMI_AUDIO_LIB"
+    jsr famistudio_update

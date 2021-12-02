@@ -1,4 +1,4 @@
-.segment "PRG_INIT_MAP"
+.segment "STARTUP_MAP"
     lda #$03
     sta $5100 ; PRG mode 3, but a bit redundant
     lda #$03

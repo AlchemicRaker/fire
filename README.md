@@ -14,7 +14,7 @@ This project's goal is to provide a baseline NES template useful to both novice 
 * **Mapper-agnostic banking**. Organize your code and data into banks without having to implement your own bank-switching routines. Easily swap between available PRG banks, including **far calling** between banks.
 * **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if desired.
 * **Highly commented system** files for advanced developers to modify as they desire.
-* **Boilerplate vectors** with unused `_CUSTOM` segments ready for your game's startup, NMI, and IRQ assembly code.
+* **Boilerplate vectors** with `_GAME` segments reserved for your game's startup, NMI, and IRQ assembly code.
 
 ## Project Organization
 
@@ -84,27 +84,25 @@ GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max c
 | [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | Yes | Yes | Yes | Yes | 1Kx8 + 1Kx4(NT) |
 | ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | Yes | - | - | - | 8K |
 
-> Todo: FME-7, VRC6, VRC7, N163
+> MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". You must include `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) or `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) in the makefile OPTIONS in order to build MMC3.
 
-> MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". The `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) and `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) options are available for this, you may define _one_ of these in the OPTIONS in the makefile.
+These functions are available based on the table above. The availability of these are cumulative, and the 0-based indexing is always in increments of the window size, so calling `select_chr_2k_1800(3);` is equivalent to calling `select_chr_1k_1800(6); select_chr_1k_1C00(7);`.
 
-These functions are available based on the table above. The availability of these are cumulative, so calling `select_chr_4k_1000(bank);` will work as expected for MMC1, and will be equivalent to calling `select_chr_1k_1000(bank); select_chr_1k_1400(bank+1); select_chr_1k_1800(bank+2); select_chr_1k_1C00(bank+3);` for FME-7.
-
-    select_chr_8k_0000(bank)
+    select_chr_8k_0000(bank) //#ifdef CHR_8K_SUPPORT
     
-    select_chr_4k_0000(bank)
+    select_chr_4k_0000(bank) //#ifdef CHR_4K_SUPPORT
     select_chr_4k_1000(bank)
     
-    select_chr_2k_0000(bank)
+    select_chr_2k_0000(bank) //#ifdef CHR_2K_SUPPORT
     select_chr_2k_0800(bank)
     select_chr_2k_1000(bank)
     select_chr_2k_1800(bank)
 
-    select_chr_1k_0000(bank)
+    select_chr_1k_0000(bank) //#ifdef CHR_1K_B_SUPPORT
     select_chr_1k_0400(bank)
     select_chr_1k_0800(bank)
     select_chr_1k_0C00(bank)
-    select_chr_1k_1000(bank)
+    select_chr_1k_1000(bank) //#ifdef CHR_1K_S_SUPPORT
     select_chr_1k_1400(bank)
     select_chr_1k_1800(bank)
     select_chr_1k_1C00(bank)
@@ -115,25 +113,26 @@ Startup, NMI, and IRQ vectors contain very common bits of code, but also contain
 
 ### Startup Vector Implementation
 
-1. `PRG_INIT_1`
+1. `STARTUP_FIRE_1`
     * Boilerplate initialization of NES state, including zeroing out the ZP
     * If C is enabled, sp and the necessary BSS and DATA ranges will be initialized
     * Waits through two vblanks and ~~initializes the PPU~~ (_currently zeroes the nametable and loads sample palettes_)
     * ~~Initializes OAM~~ (_currently sets all sprites in OAM shadow to an off-screen y value_)
-1. `PRG_INIT_MAP` is used to initialize any mapper-specific state.
-1. `PRG_INIT_LIB` is reserved to initialize any modules you choose to include, or is empty by default.
-1. `PRG_INIT_CUSTOM` is an empty segment where your game-specific startup code can go.
-1. `PRG_INIT_2` wraps up initialization and jumps to your game's `main()` or `main:`.
+1. `STARTUP_MAP` is used to initialize any mapper-specific state.
+1. `STARTUP_LIB` is reserved to initialize any modules you choose to include, or is empty by default.
+1. `STARTUP_GAME` is an empty segment where your game-specific startup code can go.
+1. `STARTUP_FIRE_2` wraps up initialization and jumps to your game's `main()` or `main:`.
 
 ### NMI Vector Implementation
 
-1. `NMI_HANDLE_1` saves the CPU registers.
-1. `NMI_HANDLE_TIMING` is both for you and for modules to set up precisely timed things using NMI, and is empty by default. Be sure that any code in here runs at constant speed (no branching, that may throw off other timing sensitive code). For instance, IRQ may use CPU Cycle Counting that needs a predictable starting point.
-1. `NMI_HANDLE_2` runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
-1. `NMI_HANDLE_LIB` is reserved for use by any modules you choose to include, or is empty by default.
-1. `NMI_HANDLE_CUSTOM` is an empty segment where your game-specific vblank code can go.
-1. `nmi_hook()` is called in C, again for your own game-specific vblank code. (requires the `C_NMI_HOOK` option)
-1. `NMI_HANDLE_3` restores the CPU registers and exits NMI.
+1. `NMI_FIRE_1` saves the CPU registers.
+1. `NMI_TIMING` is both for you and for modules to set up precisely timed things using NMI, and is empty by default. Be sure that any code in here runs at constant speed (no branching, that may throw off other timing sensitive code). For instance, IRQ may use CPU Cycle Counting that needs a predictable starting point.
+1. `NMI_FIRE_2` runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
+1. `NMI_LIB` is reserved for use by any modules you choose to include, or is empty by default.
+1. `NMI_GAME` is an empty segment where your game-specific vblank code can go.
+1. `NMI_FIRE_3` calls `nmi_hook()` in C, again for your own game-specific vblank code. (requires the `C_NMI_HOOK` option)
+1. `NMI_AUDIO_LIB` is reserved for use by any modules you choose to include, or is empty by default.
+1. `NMI_FIRE_4` restores the CPU registers and exits NMI.
 
 The limited vertical blank time is valuable. Therefore, the only code included by default is a very standard and flexible OAMDMA. By setting a value (probably `$02`) to `nmi_oam_enable`, OAMDMA will run on that page during the next NMI.
 
@@ -141,10 +140,10 @@ The limited vertical blank time is valuable. Therefore, the only code included b
 
 ### IRQ Vector Implementation
 
-1. `IRQ_HANDLE_1` is used to track the address of the IRQ vector, and is otherwise empty.
-1. `IRQ_HANDLE_LIB` is reserved for use by any modules you choose to include, or is empty by default.
-1. `IRQ_HANDLE_CUSTOM` is an empty segment where your game-specific irq code.
-1. `IRQ_HANDLE_2` calls `rti`.
+1. `IRQ_FIRE_1` is used to track the address of the IRQ vector, and is otherwise empty.
+1. `IRQ_LIB` is reserved for use by any modules you choose to include, or is empty by default.
+1. `IRQ_GAME` is an empty segment where your game-specific irq code.
+1. `IRQ_FIRE_2` calls `rti`.
 
 > We know IRQ cycles are valuable. The baseline IRQ is empty, containing only the required `rti`.
 

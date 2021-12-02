@@ -12,7 +12,7 @@ PPU_DATA    =$2007
 
 .importzp ptrf
 
-.segment "PRG_INIT_1"
+.segment "STARTUP_FIRE_1"
 .proc startup_handler
 .export _exit, startup_handler
 _exit:
@@ -228,7 +228,7 @@ clear_sprites_loop:
     sta PPU_MASK
 
 
-.segment "PRG_INIT_2"
+.segment "STARTUP_FIRE_2"
     cli
 .ifdef C_SUPPORT
     jmp _main
