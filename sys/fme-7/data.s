@@ -1,4 +1,6 @@
 
+.ifdef C_SUPPORT
+
 .proc push_data_bank
     .export push_data_bank, _push_data_bank = push_data_bank
     .import pusha
@@ -42,6 +44,7 @@
     
     rts
 .endproc ; _pop_data_bank
+.endif
 
 .proc select_data_bank
     .export select_data_bank, _select_data_bank = select_data_bank

@@ -3,8 +3,10 @@
 .error "Must include MMC3_1K_SPRITES or MMC3_1K_BACKGROUNDS in makefile OPTIONS in order to build for MMC3"
 .endif
 
-.proc _push_data_bank
-    .export _push_data_bank
+.ifdef C_SUPPORT
+
+.proc push_data_bank
+    .export push_data_bank, _push_data_bank = push_data_bank
     .import pusha
     .importzp databank
 
@@ -28,8 +30,8 @@
     rts
 .endproc ; _push_data_bank
 
-.proc _pop_data_bank
-    .export _pop_data_bank
+.proc pop_data_bank
+    .export pop_data_bank, _pop_data_bank = pop_data_bank
     .import popa
     .importzp databank
 
@@ -45,8 +47,10 @@
     rts
 .endproc ; _push_data_bank
 
-.proc _select_data_bank
-    .export _select_data_bank
+.endif
+
+.proc select_data_bank
+    .export select_data_bank, _select_data_bank = select_data_bank
     .importzp databank
 
     ; this setup for mmc3

@@ -1,5 +1,4 @@
 
-.ifdef BANK_SUPPORT
 .ifdef C_SUPPORT
 
 .proc _farcall
@@ -30,5 +29,4 @@
     rts
 .endproc ; _farcall
 
-.endif ; .ifdef C_SUPPORT
-.endif ; .ifdef BANK_SUPPORT
+.endif ; .ifdef 

@@ -1,5 +1,5 @@
-.proc _select_sample_bank
-    .export _select_sample_bank
+.proc select_sample_bank
+    .export select_sample_bank, _select_sample_bank = select_sample_bank
     .importzp samplebank
 
     ora #$80 ; add the PRG ROM flag
