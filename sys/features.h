@@ -43,45 +43,21 @@ void select_chr_1k_1800(char);
 void select_chr_1k_1C00(char);
 #endif
 
+#ifdef DYANIC_MIRRORING
+void select_mirror_vertical();
+void select_mirror_horizontal();
+#endif
+
 //PPU direct access
-#define PPU_CTRL (*(volatile char *)0x2000)
-#define write_ppu_ctrl(nametable, increment, sprite_bank, background_bank, sprite_size, nmi) { \
-    PPU_CTRL = (nametable) | (increment) | (sprite_bank) | (background_bank) | (sprite_size) | (nmi); \
-}
+#define PPU_CTRL    (*(volatile char *)0x2000)
+#define PPU_MASK    (*(volatile char *)0x2001)
+#define PPU_STATUS  (*(volatile char *)0x2002)
+#define OAM_ADDR    (*(volatile char *)0x2003)
+#define OAM_DATA    (*(volatile char *)0x2004)
+#define PPU_SCROLL  (*(volatile char *)0x2005)
+#define PPU_ADDR    (*(volatile char *)0x2006)
+#define PPU_DATA    (*(volatile char *)0x2007)
 
-#define PPU_MASK (*(volatile char *)0x2001)
-#define write_ppu_mask(background, sprite) { \
-    PPU_MASK = (background) | (sprite); \
-}
-
-char read_ppu_status();
-
-#define PPU_SCROLL (*(volatile char *)0x2005)
-#define write_ppu_scroll(x, y) { \
-    PPU_SCROLL = (x); \
-    PPU_SCROLL = (y); \
-}
-
-
-#define compose_ppu_address(nt, x, y) (nt | ((y << 5) + x))
-
-void write_ppu_address_raw(long unsigned int address);
-#define write_ppu_address(nt, x, y) write_ppu_address_raw(compose_ppu_address(nt, x, y))
-
-#define PPU_DATA (*(volatile char *)0x2007)
-#define write_ppu_data(value) { \
-    PPU_DATA = (value); \
-}
-
-void write_ppu_data_char(char length, char *souce);
-void write_ppu_data_nam(char *souce);
-void write_ppu_data_fill(char value);
-void write_ppu_data_copy_area_raw(char *source, char width, char height, long unsigned int nt_start);
-#define write_ppu_data_copy_area(source, source_x, source_y, width, height, nt_start) write_ppu_data_copy_area_raw((source) + (source_x) + ((source_y)*32), (width), (height), (nt_start))
-void write_ppu_data_fill_area(char value, char width, char height, long unsigned int nt_start);
-
-void wait_for_vblank();
-void wait_for_vblank_profile();
 
 // constants used as options:
 

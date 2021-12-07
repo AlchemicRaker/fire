@@ -11,24 +11,25 @@ This project's goal is to provide a baseline NES template useful to both novice 
 * **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
 * **Module system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
 * **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
-* **Mapper-agnostic banking**. Organize your code and data into banks without having to implement your own bank-switching routines. Easily swap between available PRG banks, including **far calling** between banks.
-* **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if desired.
+* **Unified mapper development experience**. PRG banking, CHR banking, seamless far calling, IRQ-based screen scrolling; all available through a unified api.
+* **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if you prefer the bare-metal experience.
 * **Highly commented system** files for advanced developers to modify as they desire.
-* **Boilerplate vectors** with `_GAME` segments reserved for your game's startup, NMI, and IRQ assembly code.
+* **Ready-to-use segments** reserved for your game's startup, NMI, and IRQ assembly code.
+
+> This project strongly recommends using VSCode, paired with Mesen-X and the Alchemy65 VSCode extension for the best NES debugging experience. This project contains a launch configuration for VSCode, and a build task that will display build errors in your source code.
 
 ## Project Organization
 
-The central code for your game, as well as this template's demo, are located in "src". Vectors for startup, nmi, and irq, as well as any features provided by this template, are all in "sys". Anything mapper specific is located in a subfolder, e.g. "sys/mmc3" for mmc3-specific code and configuration.
+The Fire template organizes code into four major sections, that correspond with top-level folders in the project.
 
-The makefile in the root of the project contains some build configuration. Importantly, you may switch your target mapper in this file.
-
-This project is intended for use with cc65. The makefile expects cc65 binaries to be available on your PATH.
-
-> This project highly recommends using VSCode, paired with Mesen-X and the Alchemy65 VSCode extension for the best NES debugging experience. This project contains a build task and launch configuration for VSCode.
+* "**sys/**" contains all of the template's boilerplate code.
+* "**lib/**" is for modules that you can optionally include in your project. Choose which modules to include by setting **MODULES** in the makefile.
+* "**src/**" is for all of your game code, entered via `main()` or `main:`. Assembly files in this folder will be included automatically. If you have enabled **C_SUPPORT**, C files in this folder will be included automatically.
+* "**res/**" is for your game resources. Assembly files in this folder will be included automatically.
 
 ### Getting Started
 
-Before you get started, install [cc65](https://cc65.github.io/getting-started.html) and add it to your environment PATH.
+Before you get started, install [make for Windows](http://gnuwin32.sourceforge.net/packages/make.htm) (or `sudo apt-get install build-essential` for ubuntu) and [cc65](https://cc65.github.io/getting-started.html) and add them to your environment PATH.
 
     git clone git@github.com:AlchemicRaker/fire.git
     cd fire
@@ -36,19 +37,11 @@ Before you get started, install [cc65](https://cc65.github.io/getting-started.ht
 
 Now you should have a `fire.nes` rom you can open in an emulator of your choice.
 
-> If you have set up VSCode, Mesen-X (add it to your PATH!), and installed the Alchemy65 extension, you may use `ctrl+shift+b` to build the project, and `F5` to run it.
+> If you have set up make, Mesen-X (add them to your PATH!), VSCode, and installed the Alchemy65 extension, you may use `ctrl+shift+b` to build the project, and `F5` to run it with debugging.
 
-## Cross-Mapper Design
+## Unified Mapper Development Experience
 
-For mappers that support PRG banking one or more banks, the first available bank, the "**PRG BANK**", will be used for code banking. If available, the second and third banks will be called the "**DATA BANK**" and "**SAMPLE BANK**" respectively. In actuality, all of these banks are functionally equivalent. However, this template provides extra features for each of these banks, if they are available.
-
-The **PRG BANK** is stored in segments and memory areas named "PRG_BANK_0", "PRG_BANK_1", and so on. For this bank you may utilize the "farcall" (C), and "fjsr" and "fjmp" (ASM) features to easily make calls into or between any code in the **PRG BANK**. The symbol `BANK_SUPPORT` will be defined when **PRG BANK** features are available.
-
-Despite their names, the **DATA BANK** and **SAMPLE BANK** can be used for whatever purposes you like. "select_data_bank", "push_data_bank", and "pop_data_bank" are available for navigating the data bank, and "select_sample_bank" is available for the latter bank as well. The symbols `DATA_SUPPORT` and `SAMPLE_SUPPORT` will be defined when these banks are available.
-
-In all cases, **PRG_FIXED** is used for static code. If **PRG BANK** isn't available, all of those "BANK" segments will be lumped into **PRG_FIXED** memory and won't actually be banked.
-
-### Mapper Configuration Overview
+### PRG Configuration Overview
 
 | Mapper | PRG BANK | DATA BANK | SAMPLE BANK | PRG FIXED | IRQ | Notes |
 | ------ | -------- | --------- | ----------- | --------- | --- | ----- |
@@ -63,49 +56,97 @@ In all cases, **PRG_FIXED** is used for static code. If **PRG BANK** isn't avail
 | [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | $8000 | $A000 | $C000 | $E000 | Yes | |
 | ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | $8000 | $A000 | $C000 | $E000 | No | plans below |
 
-> Many of these mappers contain configurable layouts. This template assumes that banked prg rom will use the lower addresses, and static prg rom will use the higher addresses. When possible, the highest number of prg banks has been chosen (see "notes" column).
+> Many of these mappers have configurable layouts. This template assumes that banked prg rom will use the lower addresses, and static prg rom will use the higher addresses. When possible, modes with the highest number of prg banks has been used (see "notes" column).
 
-#### GTROM notes
+> GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
 
-GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
+#### PRG API Reference
+
+The available of the BANK features corresponds with the overview table above. Your game's code is entered at `main()` or `main:`, which must be located in "PRG_FIXED" (or another non-banked segment segment).
+
+The PRG BANK is specially designed to be easy for a developer to navigate with code. In C you can use the "farcall" wrapper that will automatically handle bank switching when calling wrapped functions.
+
+    // wrap one or more functions with the "farcall" wrapper in your headers.
+    // these functions _must_ be void and take zero arguments.
+    #pragma wrapped-call (push, farcall, bank)
+    void pause_menu(void);
+    #pragma wrapped-call (pop)
+
+    // bank switching now happens automatically when calling those functions.
+    if(PAUSE) {
+        pause_menu();
+    }
+
+~~For assembly, the "farjsr" and "farjmp" macros are provided that take a label as a target, and will switch to the label's bank before jumping.~~
+
+    farjsr pause_menu
+    farjmp pause_menu
+
+The following functions are available for DATA BANK and SAMPLE BANK. The DATA BANK has optional C functions to push and pop banks, that may help manage which data page is currently selected.
+
+    void push_data_bank(char bank); //#ifdef DATA_SUPPORT
+    void pop_data_bank();
+    void select_data_bank(char bank);
+
+    void select_sample_bank(char bank); //#ifdef SAMPLE_SUPPORT
+
+Bank selection is available with assembly subroutines of the same names:
+
+    lda #bank
+    jsr select_sample_bank
+
+    lda #bank
+    jsr select_data_bank
 
 ### CHR Configuration Overview
 
-| Mapper | 8K Select | 4K Select | 2K Select | 1K Select | CHR Windows |
-| ------ | --------- | --------- | --------- | --------- | ----------- |
-| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | - | None |
-| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | - | - | - | - | None |
-| [MMC1](https://wiki.nesdev.org/w/index.php?title=MMC1) | Yes | Yes | - | - | 4K+4K or 8K |
-| [MMC3](https://wiki.nesdev.org/w/index.php?title=MMC3) | Yes | Yes | Yes | Sprite _or_ Background | 2Kx2 + 1Kx4 |
-| [MMC5](https://wiki.nesdev.org/w/index.php?title=MMC5) | Yes | Yes | Yes | Yes | 1Kx8 (and more) |
-| [FME-7](https://wiki.nesdev.org/w/index.php?title=Sunsoft_FME-7) | Yes | Yes | Yes | Yes | 1Kx8 |
-| [VRC6](https://wiki.nesdev.org/w/index.php?title=VRC6) | Yes | Yes | Yes | Yes | 1Kx8 |
-| [VRC7](https://wiki.nesdev.org/w/index.php?title=VRC7) | Yes | Yes | Yes | Yes | 1Kx8 |
-| [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | Yes | Yes | Yes | Yes | 1Kx8 + 1Kx4(NT) |
-| ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | Yes | - | - | - | 8K |
+| Mapper | 8K Select | 4K Select | 2K Select | 1K Select | Mirroring | CHR Windows |
+| ------ | --------- | --------- | --------- | --------- | --------- | ----------- |
+| [NROM](https://wiki.nesdev.org/w/index.php?title=NROM) | - | - | - | - | Fixed | None |
+| [UxROM](https://wiki.nesdev.org/w/index.php?title=UxROM) | - | - | - | - | Fixed | None |
+| [MMC1](https://wiki.nesdev.org/w/index.php?title=MMC1) | Yes | Yes | - | - | Dynamic | 4K+4K or 8K |
+| [MMC3](https://wiki.nesdev.org/w/index.php?title=MMC3) | Yes | Yes | Yes | Sprite _or_ Background | Dynamic | 2Kx2 + 1Kx4 |
+| [MMC5](https://wiki.nesdev.org/w/index.php?title=MMC5) | Yes | Yes | Yes | Yes | Dynamic | 1Kx8 (and more) |
+| [FME-7](https://wiki.nesdev.org/w/index.php?title=Sunsoft_FME-7) | Yes | Yes | Yes | Yes | Dynamic | 1Kx8 |
+| [VRC6](https://wiki.nesdev.org/w/index.php?title=VRC6) | Yes | Yes | Yes | Yes | Dynamic | 1Kx8 |
+| [VRC7](https://wiki.nesdev.org/w/index.php?title=VRC7) | Yes | Yes | Yes | Yes | Dynamic | 1Kx8 |
+| [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | Yes | Yes | Yes | Yes | Dynamic | 1Kx8 + 1Kx4(NT) |
+| ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | Yes | - | - | - | N/A | 8K |
 
 > MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". You must include `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) or `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) in the makefile OPTIONS in order to build MMC3.
 
-These functions are available based on the table above. The availability of these are cumulative, and the 0-based indexing is always in increments of the window size, so calling `select_chr_2k_1800(3);` is equivalent to calling `select_chr_1k_1800(6); select_chr_1k_1C00(7);`.
+#### CHR API Reference
 
-    select_chr_8k_0000(bank) //#ifdef CHR_8K_SUPPORT
-    
-    select_chr_4k_0000(bank) //#ifdef CHR_4K_SUPPORT
-    select_chr_4k_1000(bank)
-    
-    select_chr_2k_0000(bank) //#ifdef CHR_2K_SUPPORT
-    select_chr_2k_0800(bank)
-    select_chr_2k_1000(bank)
-    select_chr_2k_1800(bank)
+These functions are available based on the overview table above.
+Banks are always 0-indexed, and counted in multiples according to the function's name.
+As an example, `select_chr_2k_1800(2)` selects `$1000-$17FF` from CHR ROM to map into `$1800-$1FFF` of PPU memory. This is equivalent to calling `select_chr_1k_1800(4);` and `select_chr_1k_1C00(5);`.
 
-    select_chr_1k_0000(bank) //#ifdef CHR_1K_B_SUPPORT
-    select_chr_1k_0400(bank)
-    select_chr_1k_0800(bank)
-    select_chr_1k_0C00(bank)
-    select_chr_1k_1000(bank) //#ifdef CHR_1K_S_SUPPORT
-    select_chr_1k_1400(bank)
-    select_chr_1k_1800(bank)
-    select_chr_1k_1C00(bank)
+    void select_mirror_vertical(); //#ifdef DYANIC_MIRRORING
+    void select_mirror_horizontal();
+
+    void select_chr_8k_0000(char bank) //#ifdef CHR_8K_SUPPORT
+    
+    void select_chr_4k_0000(char bank) //#ifdef CHR_4K_SUPPORT
+    void select_chr_4k_1000(char bank)
+    
+    void select_chr_2k_0000(char bank) //#ifdef CHR_2K_SUPPORT
+    void select_chr_2k_0800(char bank)
+    void select_chr_2k_1000(char bank)
+    void select_chr_2k_1800(char bank)
+
+    void select_chr_1k_0000(char bank) //#ifdef CHR_1K_B_SUPPORT
+    void select_chr_1k_0400(char bank)
+    void select_chr_1k_0800(char bank)
+    void select_chr_1k_0C00(char bank)
+    void select_chr_1k_1000(char bank) //#ifdef CHR_1K_S_SUPPORT
+    void select_chr_1k_1400(char bank)
+    void select_chr_1k_1800(char bank)
+    void select_chr_1k_1C00(char bank)
+
+All of these C functions are available as assembly subroutines with the same names, and use the accumulator register as the bank argument. The above example may be written in assembly as:
+
+    lda #$02
+    jsr select_chr_2k_1800
 
 ## Vector Design
 
@@ -148,64 +189,6 @@ The limited vertical blank time is valuable. Therefore, the only code included b
 > We know IRQ cycles are valuable. The baseline IRQ is empty, containing only the required `rti`.
 
 > The most common use for IRQ is for creating a single horizontal scroll split. We provide a mapper-generic way of achieving this with the "IRQ_SCREEN_SCROLL" module.
-
-## C Environment Features
-
-### PRG BANK "farcall"
-
-When functions that are in the PRG BANK need to be called from anywhere outside their own bank, there is no guarantee that bank will actually be available. This farcall feature addresses that by allowing you to mark those functions that need to be "farcall"ed. Use the `#pragma wrapped-call (push, farcall, bank)` syntax as shown here, to "wrap" (annotate) those functions that need to be farcallable. **The function must take no arguments (void) and return void.**
-
-An example `pause_menu.h`:
-
-    #pragma wrapped-call (push, farcall, bank)
-    void pause_menu(void);
-    #pragma wrapped-call (pop)
-
-In this example code, the `pause_menu()` function is being marked as farcallable. That means, any of your other code may call it, and it will automatically handle swapping in that bank.
-
-    #include "pause_menu.h"
-    ...
-    if(PAUSE) {
-        pause_menu();
-    }
-
-Know that the bank will swap every time the function is called. Consider putting loops and the functions they need to call within the same bank, in order to reduce the overhead of bank switching.
-
-In our example, if you wish to be able to call `pause_menu()` directly without triggering bank switching, then do not include the annotated definition. A second header may be useful for this purpose.
-
-An example `pause_menu_local.h`:
-
-    void pause_menu(void);
-
-If you were to include this "local" header and make a call to `pause_menu()`, it would assume the bank is already available and jump directly to it. This sidesteps the bank switching, and its overhead, entirely.
-
-### DATA BANK controls
-
-Three functions are available for contolling the DATA BANK.
-
-You may choose to utilize it as a stack, which will allow multiple parts of your code to coordinate access to the DATA BANK. For instance, when you load a stage, you may wish to keep the stage data available in the bank. In the meantime, you may have a routine to load enemy data from a different bank (push), and then restore it back to the stage data when you're done (pop).
-
-    void push_data_bank(char);
-    void pop_data_bank();
-
-If a data stack is not necessary, you may directly switch the selected banks.
-
-    void select_data_bank(char);
-
-### SAMPLE BANK controls
-
-You may directly switch the selected sample banks.
-
-    void select_sample_bank(char);
-
-## ASM Environment Features
-
-### PRG BANK ~~"farjsr" and "farjmp"~~ (_todo_)
-
-This is the assembly equivalent of the C "farcall" feature described above. "farjsr" and "farjmp" are provided as a macros, and require a single symbol as a target. For instance:
-
-    do_pause:
-        farjsr pause_menu
 
 ## Available Modules
 

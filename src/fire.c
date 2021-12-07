@@ -1,6 +1,7 @@
 #include "fire.h"
 #include "gray.h"
 #include "features.h"
+#include "rapid.h"
 
 #ifdef FAMISTUDIO
 #include "famistudio.h"
@@ -96,8 +97,16 @@ void main (void) {
     select_chr_1k_1C00(0);
 #endif
 
+#ifdef DYANIC_MIRRORING
+    select_mirror_vertical();
+    select_mirror_horizontal();
+#endif
 
-    wait_for_vblank_profile();
+    wait_for_vblank();
+    // nmi_oam_enable = 0x02;
+    // while(nmi_oam_enable == 0x02) {
+    //     i = i;
+    // }
     draw_demo();
 #ifdef DATA_SUPPORT
     push_data_bank(demo_map_bank);
@@ -124,6 +133,8 @@ void main (void) {
     famistudio_music_play(0);
 #endif
     
+    write_scroll_shadow(4,0);
+
     while (1){ 
         // doing stupid math that's slow, calculate it before the vblank
         x = i % 24;
@@ -134,23 +145,27 @@ void main (void) {
         while(nmi_oam_enable == 0x02) {
             i = i;
         }
-
+        // wait_for_vblank();
+        // write_ppu_scroll(0, 0);
 
 #ifdef IRQ_SCREEN_SCROLL
 #ifdef IRQ_SUPPORT
         k = i & 3;
         if(k == 0) {
-            irq_screen_scroll(8, 1, 0);
+            irq_screen_scroll(8, 16, 16);
+            // irq_screen_scroll((8*15)+4, 8, 0); // 4 scanlines into the 15th tile, set scroll to 1,0
         }
         if(k == 1){
-            irq_screen_scroll((8*3)+4, 1, 0);
+            irq_screen_scroll((8*3)+4, 16, 16);
+            // irq_screen_scroll((8*15)+4, 8, 0); // 4 scanlines into the 15th tile, set scroll to 1,0
         }
         if(k == 2){
-            irq_screen_scroll((8*15)+4, 1, 0); // 4 scanlines into the 15th tile, set scroll to 1,0
+            irq_screen_scroll((8*15)+4, 16, 16); // 4 scanlines into the 15th tile, set scroll to 1,0
         }
         if(k == 3){
-            irq_screen_scroll((8*29)+4, 1, 0);
+            irq_screen_scroll((8*22)+4, 16, 16);
         }
+        // irq_screen_scroll((8*22)+4, 8, 0);
 #endif
 #endif
         
@@ -164,25 +179,25 @@ void main (void) {
         oam_shadow[2].x = i+32;
         // famistudio_update();
 
-#ifdef DATA_SUPPORT
-        push_data_bank(1);
-        k = 1;
-        push_data_bank(2);
-        k = 2;
-        select_data_bank(3);
-        k = 3;
-        pop_data_bank();
-        k = 4;
-        pop_data_bank();
-        k = 5;
-#endif
+// #ifdef DATA_SUPPORT
+//         push_data_bank(1);
+//         k = 1;
+//         push_data_bank(2);
+//         k = 2;
+//         select_data_bank(3);
+//         k = 3;
+//         pop_data_bank();
+//         k = 4;
+//         pop_data_bank();
+//         k = 5;
+// #endif
 
-#ifdef SAMPLE_SUPPORT
-        select_sample_bank(3);
-        select_sample_bank(2);
-        select_sample_bank(1);
-        select_sample_bank(0);
-#endif
+// #ifdef SAMPLE_SUPPORT
+//         select_sample_bank(3);
+//         select_sample_bank(2);
+//         select_sample_bank(1);
+//         select_sample_bank(0);
+// #endif
 
         k = i;
         // (*foo)();

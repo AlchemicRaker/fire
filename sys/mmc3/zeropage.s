@@ -1,0 +1,1 @@
+; TODO: command register shadow, to prevent race conditions
