@@ -16,38 +16,40 @@ TITLE := fire
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO
+MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO RAPID
 # FAMITONE5 - audio driver for FamiTracker
 # FAMISTUDIO - audio driver for FamiStudio
 # IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ (todo)
 # SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
 
 # Include the small customizations to the template
-OPTIONS := C_NMI_HOOK MMC3_1K_SPRITES
+OPTIONS := MMC3_1K_SPRITES # C_NMI_HOOK
 # C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_GAME segment
 # MMC3_1K_SPRITES - MMC3 CHR A12 inversion = 0, 1kx4 sprite banks, 2kx2 background banks
 # MMC3_1K_BACKGROUNDS - MMC3 CHR A12 inversion = 1, 1kx4 background banks, 2kx2 sprite banks
 
 # Select the mapper you want to use for your default builds
-MAPPER := nrom
-# nrom, uxrom, mmc1, mmc3, fme-7, mmc5, vrc6, vrc7, n163, (gtrom)
+MAPPER := n163
+# nrom, uxrom, mmc1, mmc3, mmc5, fme-7, vrc6, vrc7, n163, (gtrom)
 # nrom - the simplest mapper, with no prg or chr banks and no additional features
 # uxrom - common family of mappers with one window of bankable PRG
 # mmc1 - common mapper with one window of bankable PRG and two windows of bankable CHR
 # mmc3 - common mapper with two windows of bankable PRG and six windows of bankable CHR
-# fme-7 - powerful mapper with four windows of bankable PRG, eight windows of bankable CHR, 512KB of PRG RAM, and expansion audio
 # mmc5 - powerful mapper with four windows of bankable PRG, eight windows of bankable CHR, 128KB of PRG RAM, expansion audio, and more
+# fme-7 - powerful mapper with four windows of bankable PRG, eight windows of bankable CHR, 512KB of PRG RAM, and expansion audio
 # vrc6 - mapper with two windows of bankable PRG, eight windows of bankable CHR, and expansion audio
 # vrc7 - mapper with three windows of bankable PRG, eight windows of bankable CHR, and expansion audio
 # n163 - mapper with three windows of bankable PRG, twelve windows of bankable CHR, and expansion audio
 # gtrom - homebrew mapper with bankable PRG and CHR, not yet supported
 
-ALL_MAPPERS := nrom uxrom gtrom mmc1 mmc3 fme-7 mmc5 vrc6 vrc7 n163
+ALL_MAPPERS := nrom uxrom gtrom mmc1 mmc3 mmc5 fme-7 vrc6 vrc7 n163
 # when using build-all, build all of these mappers
 # recommended: 
 #   leave this list alone until you no longer wish to abandon compatability with a particular mapper
 #   for instance, once you start using PRG banking, remove nrom
 
+# For mappers with fixed mirroring, choose horizontal or vertical
+FIXED_MIRRORING = vertical
 
 
 
@@ -72,25 +74,25 @@ ifeq ($(MAPPER_STRIP),uxrom)
 OPTIONS := $(OPTIONS) MAPPER_UXROM BANK_SUPPORT
 endif
 ifeq ($(MAPPER_STRIP),mmc1)
-OPTIONS := $(OPTIONS) MAPPER_MMC1 BANK_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_MMC1 BANK_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),mmc3)
-OPTIONS := $(OPTIONS) MAPPER_MMC3 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_MMC3 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),mmc5)
-OPTIONS := $(OPTIONS) MAPPER_MMC5 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_MMC5 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),fme-7)
-OPTIONS := $(OPTIONS) MAPPER_FME7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_FME7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),vrc6)
-OPTIONS := $(OPTIONS) MAPPER_VRC6 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_VRC6 BANK_SUPPORT DATA_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),vrc7)
-OPTIONS := $(OPTIONS) MAPPER_VRC7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_VRC7 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT DYANIC_MIRRORING
 endif
 ifeq ($(MAPPER_STRIP),n163)
-OPTIONS := $(OPTIONS) MAPPER_N163 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT
+OPTIONS := $(OPTIONS) MAPPER_N163 BANK_SUPPORT DATA_SUPPORT SAMPLE_SUPPORT IRQ_SUPPORT CHR_8K_SUPPORT CHR_4K_SUPPORT CHR_2K_SUPPORT CHR_1K_S_SUPPORT CHR_1K_B_SUPPORT DYANIC_MIRRORING
 endif
 
 ROMFILE = $(BUILDDIR)/$(TITLE).nes
@@ -121,7 +123,14 @@ ASMRESOBJS = $(call ResToBuildPath,$(RESOURCEFILES:.s=.o))
 ASMLIBOBJS = $(call LibToBuildPath,$(LIBFILES:.s=.o))
 
 LIBOPTS = $(foreach lib,$(MODULES),-D $(lib)=1)
-OPTIONFLAGS = $(foreach opt,$(OPTIONS),-D $(opt)=1)
+OPTIONFLAGS := $(foreach opt,$(OPTIONS),-D $(opt)=1)
+
+ifeq ($(FIXED_MIRRORING),vertical)
+	OPTIONFLAGS := $(OPTIONFLAGS) -D INES_MIRROR=1
+endif
+ifeq ($(FIXED_MIRRORING),horizontal)
+	OPTIONFLAGS := $(OPTIONFLAGS) -D INES_MIRROR=0
+endif
 
 ifdef C_SUPPORT
 	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=1 $(OPTIONFLAGS)

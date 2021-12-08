@@ -56,13 +56,13 @@ Now you should have a `fire.nes` rom you can open in an emulator of your choice.
 | [N163](https://wiki.nesdev.org/w/index.php?title=INES_Mapper_019) | $8000 | $A000 | $C000 | $E000 | Yes | |
 | ~~[GTROM](https://wiki.nesdev.org/w/index.php?title=GTROM)~~ | $8000 | $A000 | $C000 | $E000 | No | plans below |
 
-> Many of these mappers have configurable layouts. This template assumes that banked prg rom will use the lower addresses, and static prg rom will use the higher addresses. When possible, modes with the highest number of prg banks has been used (see "notes" column).
+> Many of these mappers have configurable layouts. This template assumes that banked prg rom will use the lower addresses, and static prg rom will use the higher addresses. When possible, modes with the highest number of prg banks have been used (see "notes" column).
 
 > GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
 
 #### PRG API Reference
 
-The available of the BANK features corresponds with the overview table above. Your game's code is entered at `main()` or `main:`, which must be located in "PRG_FIXED" (or another non-banked segment segment).
+The availability of PRG features corresponds with the overview table above. Your game's code is entered at `main()` or `main:`, which must be located in "PRG_FIXED" (or another non-banked segment).
 
 The PRG BANK is specially designed to be easy for a developer to navigate with code. In C you can use the "farcall" wrapper that will automatically handle bank switching when calling wrapped functions.
 
@@ -183,7 +183,7 @@ The limited vertical blank time is valuable. Therefore, the only code included b
 
 1. `IRQ_FIRE_1` is used to track the address of the IRQ vector, and is otherwise empty.
 1. `IRQ_LIB` is reserved for use by any modules you choose to include, or is empty by default.
-1. `IRQ_GAME` is an empty segment where your game-specific irq code.
+1. `IRQ_GAME` is an empty segment for your game-specific irq code.
 1. `IRQ_FIRE_2` calls `rti`.
 
 > We know IRQ cycles are valuable. The baseline IRQ is empty, containing only the required `rti`.
