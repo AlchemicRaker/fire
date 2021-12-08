@@ -6,12 +6,12 @@ A thin NES template that builds against multiple mappers and includes the most f
 
 ## Project Goal
 
-This project's goal is to provide a baseline NES template useful to both novice and advanced developers. This affects many aspects of this template:
+This project's goal is to provide an NES template useful to both novice and advanced developers. This affects many aspects of this template:
 
 * **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
 * **Module system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
 * **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
-* **Unified mapper development experience**. PRG banking, CHR banking, seamless far calling, IRQ-based screen scrolling; all available through a unified api.
+* **Unified mapper API**. PRG banking, CHR banking, seamless far calling, IRQ-based screen scrolling; all in a unified api.
 * **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if you prefer the bare-metal experience.
 * **Highly commented system** files for advanced developers to modify as they desire.
 * **Ready-to-use segments** reserved for your game's startup, NMI, and IRQ assembly code.
@@ -22,7 +22,7 @@ This project's goal is to provide a baseline NES template useful to both novice 
 
 The Fire template organizes code into four major sections, that correspond with top-level folders in the project.
 
-* "**sys/**" contains all of the template's boilerplate code.
+* "**sys/**" contains the template's core code and mapper definitions for the unified API.
 * "**lib/**" is for modules that you can optionally include in your project. Choose which modules to include by setting **MODULES** in the makefile.
 * "**src/**" is for all of your game code, entered via `main()` or `main:`. Assembly files in this folder will be included automatically. If you have enabled **C_SUPPORT**, C files in this folder will be included automatically.
 * "**res/**" is for your game resources. Assembly files in this folder will be included automatically.
@@ -39,7 +39,7 @@ Now you should have a `fire.nes` rom you can open in an emulator of your choice.
 
 > If you have set up make, Mesen-X (add them to your PATH!), VSCode, and installed the Alchemy65 extension, you may use `ctrl+shift+b` to build the project, and `F5` to run it with debugging.
 
-## Unified Mapper Development Experience
+## Unified Mapper API
 
 ### PRG Configuration Overview
 
@@ -60,11 +60,11 @@ Now you should have a `fire.nes` rom you can open in an emulator of your choice.
 
 > GTROM and compatible / comparable mappers have 32K PRG banks. With GTROM's max capacity of 512K, that means there are 16 banks of memory that can be swapped in. The plan is to "fake" PRG, DATA, and SAMPLE BANKs, so long as their combined number of combinations is 16 or less. For instance, 1 x PRG, 4x DATA, and 4x SAMPLE BANKs would be a valid configuration.
 
-#### PRG API Reference
+### PRG API Reference
 
 The availability of PRG features corresponds with the overview table above. Your game's code is entered at `main()` or `main:`, which must be located in "PRG_FIXED" (or another non-banked segment).
 
-The PRG BANK is specially designed to be easy for a developer to navigate with code. In C you can use the "farcall" wrapper that will automatically handle bank switching when calling wrapped functions.
+The PRG BANK is specially designed to be easy for a developer to navigate with code. In C you can use the "**farcall**" wrapper that will automatically handle bank switching when calling wrapped functions.
 
     // wrap one or more functions with the "farcall" wrapper in your headers.
     // these functions _must_ be void and take zero arguments.
@@ -77,7 +77,7 @@ The PRG BANK is specially designed to be easy for a developer to navigate with c
         pause_menu();
     }
 
-For assembly, the "farjsr" and "farjmp" macros are provided (via "fire.inc") that take a label as a target, and will switch to the label's bank before jumping to the address. _Expect a and x to be clobbered in the process._
+For assembly, the "**farjsr**" and "**farjmp**" macros are provided (via "fire.inc") that take a label as a target, and will switch to the label's bank before jumping to the address.
 
     .include "fire.inc" ; to get access to the macros
 
@@ -130,7 +130,7 @@ Bank selection is available with assembly subroutines of the same names:
 
 > MMC3 includes two modes, the more commonly used "1K sprites", and the less commonly used "1K backgrounds". You must include `MMC3_1K_SPRITES` (for `select_chr_1k_1xxx`) or `MMC3_1K_BACKGROUNDS` (for `select_chr_1k_0xxx`) in the makefile OPTIONS in order to build MMC3.
 
-#### CHR API Reference
+### CHR API Reference
 
 These functions are available based on the overview table above.
 Banks are always 0-indexed, and counted in multiples according to the function's name.
@@ -176,21 +176,21 @@ Startup, NMI, and IRQ vectors contain very common bits of code, but also contain
     * ~~Initializes OAM~~ (_currently sets all sprites in OAM shadow to an off-screen y value_)
 1. `STARTUP_MAP` is used to initialize any mapper-specific state.
 1. `STARTUP_LIB` is reserved to initialize any modules you choose to include, or is empty by default.
-1. `STARTUP_GAME` is an empty segment where your game-specific startup code can go.
+1. `STARTUP_GAME` is an empty segment reserved for your game-specific startup code.
 1. `STARTUP_FIRE_2` wraps up initialization and jumps to your game's `main()` or `main:`.
 
 ### NMI Vector Implementation
 
 1. `NMI_FIRE_1` saves the CPU registers.
 1. `NMI_TIMING` is both for you and for modules to set up precisely timed things using NMI, and is empty by default. Be sure that any code in here runs at constant speed (no branching, that may throw off other timing sensitive code). For instance, IRQ may use CPU Cycle Counting that needs a predictable starting point.
-1. `NMI_FIRE_2` runs OAMDMA. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag OAMDMA to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
+1. `NMI_FIRE_2` runs **OAMDMA**. The source is determined by the value in `nmi_oam_enable` (which becomes the high byte, and is then cleared). For instance, `nmi_oam_enable = 0x02;` would flag **OAMDMA** to run during the next NMI, copying the comonly used OAM Shadow range of `$0200` through `$02FF`.
 1. `NMI_LIB` is reserved for use by any modules you choose to include, or is empty by default.
-1. `NMI_GAME` is an empty segment where your game-specific vblank code can go.
+1. `NMI_GAME` is an empty segment reserved for your game-specific vblank code.
 1. `NMI_FIRE_3` calls `nmi_hook()` in C, again for your own game-specific vblank code. (requires the `C_NMI_HOOK` option)
 1. `NMI_AUDIO_LIB` is reserved for use by any modules you choose to include, or is empty by default.
 1. `NMI_FIRE_4` restores the CPU registers and exits NMI.
 
-The limited vertical blank time is valuable. Therefore, the only code included by default is a very standard and flexible OAMDMA. By setting a value (probably `$02`) to `nmi_oam_enable`, OAMDMA will run on that page during the next NMI.
+The limited vertical blank time is valuable. Therefore, the only code included by default is a very standard and flexible **OAMDMA**. By setting a value (probably `$02`) to `nmi_oam_enable`, **OAMDMA** will run on that page during the next NMI.
 
 > We know NMI cycles are valuable. Any modules that put code into NMI will prioritize doing work and calculations _prior_ to NMI.
 
