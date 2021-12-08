@@ -23,13 +23,13 @@ MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO RAPID
 # SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
 
 # Include the small customizations to the template
-OPTIONS := MMC3_1K_SPRITES # C_NMI_HOOK
+OPTIONS := MMC3_1K_SPRITES C_NMI_HOOK
 # C_NMI_HOOK - Calls `nmi_hook()` in C during NMI, after the OAMDMA and the optional NMI_HANDLE_GAME segment
 # MMC3_1K_SPRITES - MMC3 CHR A12 inversion = 0, 1kx4 sprite banks, 2kx2 background banks
 # MMC3_1K_BACKGROUNDS - MMC3 CHR A12 inversion = 1, 1kx4 background banks, 2kx2 sprite banks
 
 # Select the mapper you want to use for your default builds
-MAPPER := n163
+MAPPER := nrom
 # nrom, uxrom, mmc1, mmc3, mmc5, fme-7, vrc6, vrc7, n163, (gtrom)
 # nrom - the simplest mapper, with no prg or chr banks and no additional features
 # uxrom - common family of mappers with one window of bankable PRG
@@ -245,7 +245,7 @@ $(DBGFILE) $(ROMFILE) $(MAPOUT): $(ALL_OBJECTS) | directories
 
 # assembly source files -> build objects
 $(MAPBUILDDIR)/%.o: $(SOURCEDIR)/%.s makefile | directories
-	ca65 $< $(CAOPT) -o $@ --create-full-dep $(@:.o=.d)
+	ca65 $< $(CAOPT) -o $@ --create-full-dep $(@:.o=.d) -I $(SYSDIR) -I $(LIBDIR)
 	
 # system assembly source files -> build objects
 $(SYSBUILDDIR)/%.o: $(SYSDIR)/%.s makefile | directories

@@ -9,7 +9,11 @@
 .import gray
 loop:
     lda #$00
+.ifdef BANK_SUPPORT
     farjsr gray
+.else
+    jsr gray
+.endif
     ; farjmp gray
     lda #$AA
     jmp loop
@@ -21,7 +25,11 @@ loop:
 .export gray
 .import blue
     lda #$11
+.ifdef BANK_SUPPORT
     farjsr blue
+.else
+    jsr blue
+.endif
     ; farjmp blue
     lda #$22
     rts
