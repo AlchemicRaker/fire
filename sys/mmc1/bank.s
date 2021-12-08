@@ -61,7 +61,7 @@
     pha
 
     ; switch to target bank
-    txa
+    lda farx
     sta prgbank
     
     sta $E000
@@ -75,7 +75,6 @@
     sta $E000
 
     lda fara ; restore ax registers (preserved in farjsr)
-    ldx farx
 
     jsr farjsr_resolve_2 ; sets a return point into the stack
 
@@ -111,7 +110,6 @@
 .export farjmp_resolve 
     .importzp ptrf, prgbank, fara
     ; switch to target bank
-    sta prgbank
     
     sta $E000
     lsr

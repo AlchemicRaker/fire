@@ -10,15 +10,14 @@
     .import farjsr_resolve
 
     sta fara ; preserve ax registers (restored in farjsr_resolve)
-    stx farx
+    lda #<.bank(target)
+    sta farx
 
     ; set up jump target for farjsr_resolve
     lda #<(target)
     sta ptrf
     lda #>(target)
     sta ptrf+1
-
-    ldx #<.bank(target)
 
     jsr farjsr_resolve
 
