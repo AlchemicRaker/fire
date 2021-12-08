@@ -1,7 +1,7 @@
 .segment "ZEROPAGE"
 
 ptrf: .res 2 ; a zp pointer for this template
-.export ptrf
+.exportzp ptrf
 
 .ifdef C_SUPPORT
     ; --C support--
@@ -12,15 +12,17 @@ ptrf: .res 2 ; a zp pointer for this template
 
 ; only define prgbank if banking is enabled
 .ifdef BANK_SUPPORT
-    .export prgbank
+    .exportzp prgbank, fara, farx
     prgbank: .res 1
+    fara: .res 1
+    farx: .res 1
 .endif
 .ifdef DATA_SUPPORT
-    .export databank
+    .exportzp databank
     databank: .res 1
 .endif
 .ifdef SAMPLE_SUPPORT
-    .export samplebank
+    .exportzp samplebank
     samplebank: .res 1
 .endif
 

@@ -234,11 +234,12 @@ clear_sprites_loop:
     jmp _main
 ; -------------
 .else
+.import main
     jmp main
-.proc main ; stubbed main loop for non-c projects
-loop:
-    jmp loop
-.endproc
+; .proc main ; stubbed main loop for non-c projects
+; loop:
+;     jmp loop
+; .endproc
 
 .endif
 .endproc

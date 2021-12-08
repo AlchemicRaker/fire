@@ -77,10 +77,25 @@ The PRG BANK is specially designed to be easy for a developer to navigate with c
         pause_menu();
     }
 
-~~For assembly, the "farjsr" and "farjmp" macros are provided that take a label as a target, and will switch to the label's bank before jumping.~~
+For assembly, the "farjsr" and "farjmp" macros are provided (via "fire.inc") that take a label as a target, and will switch to the label's bank before jumping to the address. _Expect a and x to be clobbered in the process._
 
-    farjsr pause_menu
-    farjmp pause_menu
+    .include "fire.inc" ; to get access to the macros
+
+    .segment "PRG_BANK_0"
+    loop:
+        farjsr work
+        jmp loop
+
+    back:
+        farjmp forth
+    
+    .segment "PRG_BANK_1"
+    work:
+        lda #$42
+        rts
+
+    forth:
+        farjmp back
 
 The following functions are available for DATA BANK and SAMPLE BANK. The DATA BANK has optional C functions to push and pop banks, that may help manage which data page is currently selected.
 
