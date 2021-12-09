@@ -16,11 +16,14 @@ TITLE := fire
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO RAPID
-# FAMITONE5 - audio driver for FamiTracker
-# FAMISTUDIO - audio driver for FamiStudio
-# IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ (todo)
+MODULES = IRQ_SCREEN_SCROLL RAPID FAMISTUDIO
+# IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ
 # SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
+
+# Audio Engine Modules:
+#  FAMISTUDIO - audio driver for FamiStudio
+#  BHOP - audio driver for FamiTracker, under development but aims to support all FamiTracker features (incomplete)
+#  FAMITONE5 - optimized audio driver for FamiTracker, has reduced featureset to achieve these optimizations (todo)
 
 # Include the small customizations to the template
 OPTIONS := MMC3_1K_SPRITES C_NMI_HOOK
