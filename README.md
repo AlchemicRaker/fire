@@ -1,8 +1,6 @@
-# Fire NES Template - WIP
+# Fire NES Template
 
 A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). A demo is included in the "src" and "res" directories to get you started with some bank switching and on-screen graphics.
-
-> THIS PROJECT IS WIP, features may not yet be as described in the README
 
 ## Project Goal
 
@@ -166,6 +164,8 @@ All of these C functions are available as assembly subroutines with the same nam
 ## Vector Design
 
 Startup, NMI, and IRQ vectors contain very common bits of code, but also contain code that is highly game-specific. We understand how critical timing is in these places, so we have provided that common code (as described below) and left the rest open for you.
+
+Vectors are organized and documented below by _segment name_. Some segments are used by the Fire template, and some are used by libraries. All of them contain a `_GAME` segment already set up and reserved for your use.
 
 ### Startup Vector Implementation
 

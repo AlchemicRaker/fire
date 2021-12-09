@@ -16,7 +16,7 @@ TITLE := fire
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = IRQ_SCREEN_SCROLL FAMISTUDIO RAPID
+MODULES = IRQ_SCREEN_SCROLL RAPID FAMITONE5 #FAMISTUDIO
 # FAMITONE5 - audio driver for FamiTracker
 # FAMISTUDIO - audio driver for FamiStudio
 # IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ (todo)
@@ -133,7 +133,7 @@ ifeq ($(FIXED_MIRRORING),horizontal)
 endif
 
 ifdef C_SUPPORT
-	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=1 $(OPTIONFLAGS)
+	CAOPT := -g -D C_SUPPORT=1 $(LIBOPTS) $(OPTIONFLAGS)
 	CCOPT := -g -Oirs --add-source $(LIBOPTS) $(OPTIONFLAGS)
 	LIBRARIES := nes.lib
 	
@@ -141,12 +141,21 @@ ifdef C_SUPPORT
 	CFILES := $(wildcard $(SOURCEDIR)/*.c)
 	CASM := $(call SourceToBuildPath,$(CFILES:.c=.s))
 	COBJECTS := $(call SourceToBuildPath,$(CFILES:.c=.o))
+	
+ifneq (,$(findstring FAMISTUDIO,$(MODULES)))
+	CAOPT := $(CAOPT) -D FAMISTUDIO_CFG_C_BINDINGS=1
+endif
+
 else
 	CAOPT := -g $(LIBOPTS) -D FAMISTUDIO_CFG_C_BINDINGS=0 $(OPTIONFLAGS)
 	LIBRARIES :=
 	CFILES :=
 	CASM :=
 	COBJECTS :=
+ifneq (,$(findstring FAMISTUDIO,$(MODULES)))
+	CAOPT := $(CAOPT) -D FAMISTUDIO_CFG_C_BINDINGS=0
+endif
+
 endif
 
 ifeq ($(MAPPER_STRIP),mmc3)

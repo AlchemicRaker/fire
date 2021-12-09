@@ -7,6 +7,10 @@
 #include "famistudio.h"
 #endif
 
+#ifdef FAMITONE5
+#include "famitone5.h"
+#endif
+
 #ifdef IRQ_SCREEN_SCROLL
 #ifdef IRQ_SUPPORT
 #include "irq_screen_scroll.h"
@@ -33,6 +37,8 @@ extern unsigned int* cptr;
 
 extern unsigned char music_data_journey_to_silius[];
 extern unsigned char sounds[];
+
+extern void* ld49_title_music_data;
 
 unsigned char i=127;
 unsigned char j=126;
@@ -131,6 +137,11 @@ void main (void) {
     // famistudio_sfx_init(&sounds);
     famistudio_init(FAMISTUDIO_PLATFORM_NTSC, &music_data_journey_to_silius);
     famistudio_music_play(0);
+#endif
+
+#ifdef FAMITONE5
+    FamiToneInit(FAMITONE5_PLATFORM_NTSC, ld49_title_music_data);
+    FamiToneMusicPlay(0);
 #endif
     
     write_scroll_shadow(4,0);
