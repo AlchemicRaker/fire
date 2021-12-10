@@ -40,6 +40,8 @@ unsigned char k;
 unsigned int x, y;
 long unsigned int drawto;
 
+const char tiles[] = {1, 2, 3};
+
 void draw_demo(void) {
     write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_1000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
@@ -103,10 +105,7 @@ void main (void) {
 #endif
 
     wait_for_vblank();
-    // nmi_oam_enable = 0x02;
-    // while(nmi_oam_enable == 0x02) {
-    //     i = i;
-    // }
+    
     draw_demo();
 #ifdef DATA_SUPPORT
     push_data_bank(demo_map_bank);
@@ -141,12 +140,21 @@ void main (void) {
         y = 12 + i % 13;
         drawto = compose_ppu_address(0x2000, x, y);
         // wait_for_vblank_profile();
-        nmi_oam_enable = 0x02;
-        while(nmi_oam_enable == 0x02) {
-            i = i;
-        }
+        // nmi_oam_enable = 0x02;
+        // while(nmi_oam_enable == 0x02) {
+        //     i = i;
+        // }
+        wait_for_nmi();
         // wait_for_vblank();
         // write_ppu_scroll(0, 0);
+
+        video_buffer[0] = 0x2003;
+        // video_buffer[1] = 0x20;
+        video_buffer[1] = 0x03 | (0x02 << 8); // copy multiple, len 3
+        // video_buffer[3] = 0x01;
+        video_buffer[2] = &tiles;
+        video_buffer_pointer += 6;
+        video_buffer_ready = 1;
 
 #ifdef IRQ_SCREEN_SCROLL
 #ifdef IRQ_SUPPORT

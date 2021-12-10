@@ -9,7 +9,7 @@ A thin NES template that builds against multiple mappers and includes the most f
 This project's goal is to provide an NES template useful to both novice and advanced developers. This affects many aspects of this template:
 
 * **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
-* **Module system** to easily include commonly used tools such as the ~~neslib~~ and ~~nesdoug~~ libraries, and the ~~Famitone5~~ and Famistudio audio engines.
+* **Module system** with ready-to-use rapidfire video libraries and audio engines. Available audio engines include Famistudio (for the music authoring program of the same name), and ~~Famitone5~~ and BHOP for FamiTracker.
 * **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
 * **Unified mapper API**. PRG banking, CHR banking, seamless far calling, IRQ-based screen scrolling; all in a unified api.
 * **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if you prefer the bare-metal experience.
