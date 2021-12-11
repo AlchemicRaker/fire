@@ -43,36 +43,20 @@ skip_video_flush:
 ;  arguments for those routines are stored in line, following the routine address
 
 .proc video_buffer_flush
-    ; preserve stack pointer
+    
     tsx
-    stx video_buffer_sp
-
-    ; as a final bit of prep, add a return address to the chain that brings us back here
-prep_rapidfire_return:
-    ; ldy video_buffer_offset
-    ; lda #<(end_of_rapidfire-1)
-    ; sta VIDEO_BUFFER,y
-    ; iny
-    ; lda #>(end_of_rapidfire-1)
-    ; sta VIDEO_BUFFER,y
-    ; sty video_buffer_offset ; don't need to store it now since it gets reset when flush completes
+    stx video_buffer_sp ; preserve stack pointer
 
     ldx #$FF ; sp will decrement to $00 to find the first loaded subroutine
     txs
 
-start_rapidfire:
-    rts
+    rts ; begin!
 
 end_of_rapidfire:
 .export end_of_rapidfire
 
-    ; restore stack pointer
-    ldx video_buffer_sp
+    ldx video_buffer_sp ; restore stack pointer
     txs
-    
-    ; reset the offset to the start
-    ; lda #$00
-    ; sta video_buffer_offset
     
     rts
 .endproc ; .proc video_buffer_flush
