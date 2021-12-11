@@ -1,3 +1,25 @@
+.include "RAPIDFIRE.inc"
+
+.segment "PRG_FIXED"
+
+.proc _sample_c_hook
+.export _sample_c_hook
+.import diggy_hole
+    rapidfire_push_ppu_addr $2003
+    rapidfire_push_ppu_data_4 #$03, #$01, #$07, #$07
+    ; rapidfire_push_ppu_addr $2000
+    ; rapidfire_push_subroutine diggy_hole, $CA
+    rts
+.endproc ; .proc _sample_c_hook
+
+
+.proc diggy_hole
+.export diggy_hole
+    pla
+    tax ; load and do something with a value
+    rts
+.endproc ; .proc diggy_hole
+
 
 .ifndef C_SUPPORT
 .include "fire.inc"

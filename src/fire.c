@@ -1,7 +1,7 @@
 #include "fire.h"
 #include "gray.h"
 #include "features.h"
-#include "rapid.h"
+#include "rapidfire.h"
 
 #ifdef FAMISTUDIO
 #include "famistudio.h"
@@ -42,6 +42,8 @@ long unsigned int drawto;
 
 const char tiles[] = {1, 2, 3};
 
+extern void sample_c_hook(void);
+
 void draw_demo(void) {
     write_ppu_mask(MASK_HIDE_BG, MASK_HIDE_SPRITE);
     write_ppu_ctrl(CTRL_NAMETABLE_2000,CTRL_INCREMENT_1,CTRL_SPRITE_1000,CTRL_BG_0000,CTRL_SPRITE_8x8,CTRL_NMI_DISABLE);
@@ -80,6 +82,16 @@ void nmi_hook() {
     write_ppu_scroll(0, 0);
 }
 #endif
+
+void draw_text() {
+    PPU_DATA = 0x02;
+    PPU_DATA = 0x01;
+    PPU_DATA = 0x07;
+    PPU_DATA = 0x03;
+    PPU_DATA = 0x01;
+}
+
+        unsigned char please;
 
 void main (void) {
 
@@ -148,13 +160,13 @@ void main (void) {
         // wait_for_vblank();
         // write_ppu_scroll(0, 0);
 
-        video_buffer[0] = 0x2003;
-        // video_buffer[1] = 0x20;
-        video_buffer[1] = 0x03 | (0x02 << 8); // copy multiple, len 3
-        // video_buffer[3] = 0x01;
-        video_buffer[2] = &tiles;
-        video_buffer_pointer += 6;
-        video_buffer_ready = 1;
+        rapidfire_push_ppu_addr(0x2001);
+        rapidfire_push_ppu_ctrl(CTRL_NAMETABLE_2000 + CTRL_INCREMENT_32 + CTRL_SPRITE_1000 + CTRL_BG_0000 + CTRL_SPRITE_8x8 + CTRL_NMI_ENABLE);
+        rapidfire_push_function(draw_text);
+        rapidfire_push_ppu_data(0x0A);
+        rapidfire_push_ppu_ctrl(CTRL_NAMETABLE_2000 + CTRL_INCREMENT_1 + CTRL_SPRITE_1000 + CTRL_BG_0000 + CTRL_SPRITE_8x8 + CTRL_NMI_ENABLE);
+
+        rapidfire_ready();
 
 #ifdef IRQ_SCREEN_SCROLL
 #ifdef IRQ_SUPPORT

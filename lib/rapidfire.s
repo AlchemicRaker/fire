@@ -1,33 +1,33 @@
-; RAPID is a video library for NES
-; providing performant direct and buffered update routines
-; for both asm and C
+; RAPIDFIRE is a video library for NES
+; buffered NMI video updates for both asm and C
+; using the high performance popslide technique
 ; 
 
 
 .segment "ZEROPAGE"
 redi: .res 2
-video_buffer_cursor: .res 2 ; used while flushing the buffer
-video_buffer_pointer: .res 2 ; points to the next unused buffer location
+video_buffer_offset: .res 1 ; points to the next unused buffer location
 
-.exportzp video_buffer_pointer
-.exportzp _video_buffer_pointer = video_buffer_pointer
+.exportzp video_buffer_offset
+.exportzp _video_buffer_offset = video_buffer_offset
 
 .segment "RAM"
 nmi_counter: .res 1 ; increments during nmi
-video_buffer_start: .res 2 ; can alter if you want to double-buffer
 video_buffer_ready: .res 1 ; 0 = not ready, nonzero value = draw in next nmi
-video_buffer: .res 100
+video_buffer_sp: .res 1 ; preserve the sp, since rapidfire will clobber it
+
+VIDEO_BUFFER = $0100 ; low end of the stack
+
 .export nmi_counter
-.export video_buffer, video_buffer_ready
-.export _video_buffer = video_buffer, _video_buffer_ready = video_buffer_ready
+.export video_buffer_ready, VIDEO_BUFFER
+.export _VIDEO_BUFFER = VIDEO_BUFFER, _video_buffer_ready = video_buffer_ready
 
 
 
 .segment "STARTUP_LIB"
-    lda #<video_buffer
-    sta video_buffer_start
-    lda #>video_buffer
-    sta video_buffer_start+1
+    lda #$00
+    sta video_buffer_offset
+    sta video_buffer_ready
 
 .segment "NMI_LIB"
     lda video_buffer_ready
@@ -38,139 +38,154 @@ skip_video_flush:
 
 .segment "PRG_FIXED"
 
-; video buffer design:
-;  call prg rom subroutine
-;    [subroutine address low byte] [subroutine address high byte >= $8000]
-;  set ppu address (nametables and palettes)
-;    [ppu address low byte] [ppu address high byte >= $2000 and <= $3FFFF]
-;  end of flush
-;    [unused byte] [ $00 ]
-;  write value to ppu_data
-;    [value byte] [ $01 ]
-;  copy up to 255 bytes to ppu_data
-;    [length byte] [ $02 ] [source address low byte] [source address high byte] 
-;  write value to ppu_ctrl (vertical or horizontal)
+; rapidfire video buffer design:
+;  video routine addresses(-1) are stored starting at $100
+;  arguments for those routines are stored in line, following the routine address
 
 .proc video_buffer_flush
-    lda video_buffer_start
-    sta video_buffer_cursor
-    lda video_buffer_start+1
-    sta video_buffer_cursor+1
+    ; preserve stack pointer
+    tsx
+    stx video_buffer_sp
 
-    ; insert an "end of buffer" zero byte
-    ldy #$01
-    lda #$00
-    sta video_buffer_pointer,y
+    ; as a final bit of prep, add a return address to the chain that brings us back here
+prep_rapidfire_return:
+    ; ldy video_buffer_offset
+    ; lda #<(end_of_rapidfire-1)
+    ; sta VIDEO_BUFFER,y
+    ; iny
+    ; lda #>(end_of_rapidfire-1)
+    ; sta VIDEO_BUFFER,y
+    ; sty video_buffer_offset ; don't need to store it now since it gets reset when flush completes
 
-    ; set video_buffer_ready = 0 for next nmi
-    sta video_buffer_ready
+    ldx #$FF ; sp will decrement to $00 to find the first loaded subroutine
+    txs
 
-    jmp video_buffer_parse_loop_first
+start_rapidfire:
+    rts
 
-video_command_ppu_data:
-;  write value to ppu_data
-;    [value byte] [ $01 ]
-    lda video_buffer_cursor
-    sta PPU_DATA
+end_of_rapidfire:
+.export end_of_rapidfire
 
-    ; loop until end byte reached
-video_buffer_parse_loop:
-.export video_buffer_parse_loop
-    ; increment cursor by 2 before continuing
-    lda video_buffer_cursor
-    adc #$02
-    sta video_buffer_cursor
-    bcc video_buffer_parse_loop_first
-    inc video_buffer_cursor+1
-
-video_buffer_parse_loop_first:
-
-    ; load the command byte
-    ldy #$01
-    lda (video_buffer_cursor),y
-
-maybe_command:
-    ; below #$20? it's a command
-    cmp #$20
-    bpl maybe_ppu_addr
-    cmp #$01
-    beq video_command_ppu_data ; command = 1
-    bmi done_flushing_buffer ; command = 0
+    ; restore stack pointer
+    ldx video_buffer_sp
+    txs
     
-    ; command = 2
-
-    ldy #$02 ; y = 0
-    lda (video_buffer_cursor),y
-    sta redi
-    iny
-    lda (video_buffer_cursor),y
-    sta redi+1
-    ldy #$00
-    lda (video_buffer_cursor),y
-    tax ; x = length
+    ; reset the offset to the start
+    ; lda #$00
+    ; sta video_buffer_offset
     
-    ; increment cursor by 2 before continuing
-    lda video_buffer_cursor
-    adc #$02
-    sta video_buffer_cursor
-    bcc load_multi_loop
-    inc video_buffer_cursor+1
-
-    ; now video_buffer_cursor points to the source address
-load_multi_loop:
-    lda (redi),y ; a = source[y]
-    sta PPU_DATA
-    iny
-    dex
-    bne load_multi_loop
-
-;  copy up to 255 bytes to ppu_data
-;    [length byte] [ $02 ] [source address low byte] [source address high byte] 
-
-    jmp video_buffer_parse_loop ; continue
-
-maybe_ppu_addr:
-    ; below #$40? it's PPU_ADDR
-    cmp #$40
-    bpl maybe_subroutine
-    
-;  set ppu address (nametables and palettes)
-;    [ppu address low byte] [ppu address high byte >= $2000 and <= $3FFFF]
-    sta PPU_ADDR
-    dey
-    lda (video_buffer_cursor),y
-    sta PPU_ADDR
-
-    jmp video_buffer_parse_loop ; continue
-
-maybe_subroutine:
-    ; it's a subroutine
-    
-;  call prg rom subroutine
-;    [subroutine address low byte] [subroutine address high byte >= $8000]
-    jsr video_buffer_jsr_launchpad
-
-    jmp video_buffer_parse_loop ; continue
-
-
-
-    ; reset video_buffer_pointer = video_buffer_start
-done_flushing_buffer:    
-    lda video_buffer_start
-    sta video_buffer_pointer
-    lda video_buffer_start+1
-    sta video_buffer_pointer+1
-
     rts
 .endproc ; .proc video_buffer_flush
 
-.proc video_buffer_jsr_launchpad
-.export video_buffer_jsr_launchpad
-    jmp (video_buffer_cursor)
-.endproc ; .proc video_buffer_jsr_launchpad
+.proc rapidfire_ready
+.export rapidfire_ready
+.export _rapidfire_ready = rapidfire_ready
+.import end_of_rapidfire
+    ldy video_buffer_offset
+    lda #<(end_of_rapidfire-1)
+    sta VIDEO_BUFFER,y
+    iny
+    lda #>(end_of_rapidfire-1)
+    sta VIDEO_BUFFER,y
+    sta video_buffer_ready
+    ldy #$00
+    sty video_buffer_offset
+    rts
+.endproc ; .proc rapidfire_ready 
+
+;;; rapidfire-ready functions
+
+.proc rapidfire_ppu_addr
+.export rapidfire_ppu_addr
+.export _rapidfire_ppu_addr = rapidfire_ppu_addr
+    lda PPU_STATUS
+    pla
+    sta PPU_ADDR
+    pla
+    sta PPU_ADDR
+    rts
+.endproc ; .proc rapidfire_ppu_addr
+
+.proc rapidfire_ppu_data
+.export rapidfire_ppu_data
+.export _rapidfire_ppu_data = rapidfire_ppu_data
+    pla
+    sta PPU_DATA
+    rts
+.endproc ; .proc rapidfire_ppu_data
+
+.proc rapidfire_ppu_data_2
+.export rapidfire_ppu_data_2
+    pla
+    sta PPU_DATA
+    pla
+    sta PPU_DATA
+    rts
+.endproc ; .proc rapidfire_ppu_data_2
+
+.proc rapidfire_ppu_data_4
+.export rapidfire_ppu_data_4
+    pla
+    sta PPU_DATA
+    pla
+    sta PPU_DATA
+    pla
+    sta PPU_DATA
+    pla
+    sta PPU_DATA
+    rts
+.endproc ; .proc rapidfire_ppu_data_4
+
+.proc rapidfire_ppu_ctrl
+.export rapidfire_ppu_ctrl
+.export _rapidfire_ppu_ctrl = rapidfire_ppu_ctrl
+    pla
+    sta PPU_CTRL
+    rts
+.endproc ; .proc rapidfire_ppu_ctrl
+
+
+;;; these subroutines are inferior to the macros
+.proc rapidfire_subroutine ; queue ax
+.export rapidfire_subroutine, rapidfire_ax = rapidfire_subroutine
+    ldy video_buffer_offset
+    sta VIDEO_BUFFER,y
+    iny
+    txa
+    sta VIDEO_BUFFER,y
+    iny
+    sty video_buffer_offset
+    rts
+.endproc
+
+.proc rapidfire_a ; queue a
+.export rapidfire_a
+    ldy video_buffer_offset
+    sta VIDEO_BUFFER,y
+    iny
+    sty video_buffer_offset
+    rts
+.endproc
+
+.proc rapidfire_subroutine_y ; queue axy
+.export rapidfire_subroutine_y, rapidfire_axy = rapidfire_subroutine_y
+    sty redi
+    ldy video_buffer_offset
+    sta VIDEO_BUFFER,y
+    iny
+    txa
+    sta VIDEO_BUFFER,y
+    iny
+    lda redi
+    sta VIDEO_BUFFER,y
+    iny
+    sty video_buffer_offset
+    rts
+.endproc
 
 
 
+;; common helper functions
 
 .proc wait_for_vblank ; wait_for_vblank()
 .export wait_for_vblank

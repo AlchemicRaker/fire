@@ -220,6 +220,45 @@ IRQs may work by counting cpu cycles or scanlines, and techniques exist for trig
     irq_screen_scroll_disable();
     // disables the screen scroll
 
+### Rapidfire Video Module (RAPIDFIRE)
+
+Rapidfire is a video library for NES. It provides buffered NMI video updates for both asm and C, inspired by the high performance "popslide" technique.
+
+C developers may include the library and use the `rapidfire_push_` functions to add things to the Rapidfire buffer. Once all the changes are buffered, end it with `rapidfire_ready()`.
+
+    rapidfire_push_ppu_addr(unsigned int address);
+    rapidfire_push_ppu_data(char data);
+    rapidfire_push_ppu_ctrl(char ctrl);
+    rapidfire_push_function(void* function);
+    // (more coming later)
+
+    rapidfire_ready();
+
+Implement your own functions to run in nmi, using `rapidfire_push_function`:
+
+    #include "rapidfire.h"
+
+    void foo() { // quickly writes some tiles into the nametable
+        PPU_ADDR = 0x20; PPU_ADDR = 0x03;
+        PPU_DATA = 0xA0; PPU_DATA = 0xA1;
+        PPU_DATA = 0xA2; PPU_DATA = 0xA3;
+    }
+
+    // once per frame queue up what you want to draw
+    rapidfire_push_function(foo);
+    rapidfire_ready();
+
+Assembly developers may utilize macros to buffer updates:
+
+    rapidfire_push_ppu_addr newaddress
+    rapidfire_push_ppu_ctrl ctrl
+    rapidfire_push_ppu_data data
+    rapidfire_push_subroutine subroutine, arg1, arg2, ...
+
+    jsr rapidfire_ready ; once all changes have been buffered
+
+When implementing your own subroutine, arguments will be placed in the buffer as well. You may access each of these arguments, in order, using `pla`. After all arguments have been read from the buffer, call `rts` to move on to the next buffered item.
+
 ### ~~FamiTone5 Module (FAMITONE5)~~
 
 (_todo_)
