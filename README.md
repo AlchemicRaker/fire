@@ -268,3 +268,9 @@ When implementing your own subroutine, arguments will be placed in the buffer as
 This includes the NES Sound Engine for the [FamiStudio NES Music Editor](https://famistudio.org/).
 
 Please see "lib/famistudio.s" for the extensive configuration options available for this engine.
+
+### BHOP Module (BHOP)
+
+This includes the WIP [BHOP](https://github.com/zeta0134/bhop) sound engine, which aims to be a drop-in replacement for FamiTracker projects.
+
+> This is partly implemented, but should eventually support automatic sample banking on compatible mappers.
