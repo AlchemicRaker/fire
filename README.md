@@ -1,8 +1,6 @@
-# Fire NES Template - WIP
+# Fire NES Template
 
-A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). A demo is included in the "src" and "res" directories to get you started with some bank switching and on-screen graphics.
-
-> THIS PROJECT IS WIP, features may not yet be as described in the README
+A thin NES template that builds against multiple mappers and includes the most fundamental of mapper integrations (eg bank switching and far calling across banks). This project enables you to develop in both C and assembly.
 
 ## Project Goal
 
@@ -207,6 +205,33 @@ The limited vertical blank time is valuable. Therefore, the only code included b
 
 ## Available Modules
 
+### Easy Joypad Module (EASY_JOY)
+
+Reading player input via the "standard controllers" is pretty common, but because different types of controllers are available this hasn't been baked into the base fire template. This module reads one or both controllers, and reports which keys are held, which keys have been newly pressed this frame, and which keys have released. If NMI is disabled and you need to poll for input, you may call `poll_joy();` once per frame. However while NMI is enabled, **inputs are _automatically_ polled once per NMI**.
+
+    // include "easy_Joy.h"
+    char JOY1_HELD;
+    char JOY1_PRESSED;
+    char JOY1_RELEASED;
+    
+    char JOY2_HELD; // #ifdef READ_JOY_2
+    char JOY2_PRESSED;
+    char JOY2_RELEASED;
+
+    poll_joy(); // usually not needed
+
+    // constants:
+    BUTTON_A
+    BUTTON_B
+    BUTTON_SELECT
+    BUTTON_START
+    BUTTON_UP
+    BUTTON_DOWN
+    BUTTON_LEFT
+    BUTTON_RIGHT
+
+> This module uses the common double-read technique for DPCM safety.
+
 ### IRQ Screen Scroll Module (IRQ_SCREEN_SCROLL)
 
 IRQs may work by counting cpu cycles or scanlines, and techniques exist for triggering multiple IRQs per frame. IRQs can be used for many things, and can require incredible precision and tuning. For this reason, we have left the IRQ segment empty, and you may include the "IRQ_SCREEN_SCROLL" module for the most common use case of IRQ: a horizontal scroll split.
@@ -258,10 +283,6 @@ Assembly developers may utilize macros to buffer updates:
     jsr rapidfire_ready ; once all changes have been buffered
 
 When implementing your own subroutine, arguments will be placed in the buffer as well. You may access each of these arguments, in order, using `pla`. After all arguments have been read from the buffer, call `rts` to move on to the next buffered item.
-
-### ~~FamiTone5 Module (FAMITONE5)~~
-
-(_todo_)
 
 ### FamiStudio Module (FAMISTUDIO)
 

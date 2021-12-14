@@ -16,7 +16,7 @@ TITLE := game
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = 
+MODULES = EASY_JOY
 # IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ
 # SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
 

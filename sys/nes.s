@@ -39,6 +39,8 @@ PPU_SCROLL           = $2005 ; write twice for x and y
 PPU_ADDR             = $2006 ; write twice (low, high) to set PPU ADDRESS
 PPU_DATA             = $2007 ; write to the PPU, increments 
 
+IO_JOY1              = $4016
+IO_JOY2              = $4017
 
 
 .export PPU_CTRL
@@ -72,3 +74,5 @@ PPU_DATA             = $2007 ; write to the PPU, increments
 .export PPU_SCROLL
 .export PPU_ADDR
 .export PPU_DATA
+.export IO_JOY1
+.export IO_JOY2
