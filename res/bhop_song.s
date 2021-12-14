@@ -2,9 +2,9 @@
 .ifdef BHOP
     ; include song
 
-.segment "SAMPLE_BANK_3"
+.segment "DPCM_12"
 bhop_music_data:
 .export bhop_music_data
-.include "bhop_song/ld49-title.asm"
+.include "bhop_song/drumstar1b.asm"
     
 .endif ; .ifdef BHOP
