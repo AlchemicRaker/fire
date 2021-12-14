@@ -7,7 +7,7 @@ A thin NES template that builds against multiple mappers and includes the most f
 This project's goal is to provide an NES template useful to both novice and advanced developers. This affects many aspects of this template:
 
 * **Low opinion** design so that your game is not limited by unnecessary and incorrect constraints about how the template _thinks_ your game should run.
-* **Module system** with ready-to-use rapidfire video libraries and audio engines. Available audio engines include Famistudio (for the music authoring program of the same name), and ~~Famitone5~~ and BHOP for FamiTracker.
+* **Module system** with ready-to-use Easy Joypad input library, Famistudio and BHOP (wip) audio engines, and the Rapidfire video library.
 * **Multi-mapper build system** that targets many common mappers used in the homebrew community. Start developing with any of these mappers _today_.
 * **Unified mapper API**. PRG banking, CHR banking, seamless far calling, IRQ-based screen scrolling; all in a unified api.
 * **C and ASM** are both supported, though you may choose to disable all **C** elements of the template if you prefer the bare-metal experience.
@@ -170,8 +170,8 @@ Startup, NMI, and IRQ vectors contain very common bits of code, but also contain
 1. `STARTUP_FIRE_1`
     * Boilerplate initialization of NES state, including zeroing out the ZP
     * If C is enabled, sp and the necessary BSS and DATA ranges will be initialized
-    * Waits through two vblanks and ~~initializes the PPU~~ (_currently zeroes the nametable and loads sample palettes_)
-    * ~~Initializes OAM~~ (_currently sets all sprites in OAM shadow to an off-screen y value_)
+    * Waits through two vblanks, using the time to zero out the nametable and load some default palettes
+    * Initializes OAM shadow by setting all y values to off-screen
 1. `STARTUP_MAP` is used to initialize any mapper-specific state.
 1. `STARTUP_LIB` is reserved to initialize any modules you choose to include, or is empty by default.
 1. `STARTUP_GAME` is an empty segment reserved for your game-specific startup code.
