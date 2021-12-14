@@ -9,8 +9,8 @@
 # make clean
 
 
-# name of the output rom, eg "fire.nes"
-TITLE := fire
+# name of the output rom, eg "game.nes"
+TITLE := game
 
 # Build supports C and ASM out of the box
 C_SUPPORT := 1 # Comment out this line to disable C support
