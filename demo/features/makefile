@@ -10,13 +10,13 @@
 
 
 # name of the output rom, eg "fire.nes"
-TITLE := fire
+TITLE := firedemo
 
 # Build supports C and ASM out of the box
 C_SUPPORT := 1 # Comment out this line to disable C support
 
 # Include these community libraries in your project
-MODULES = 
+MODULES = IRQ_SCREEN_SCROLL RAPIDFIRE BHOP # FAMISTUDIO
 # IRQ_SCREEN_SCROLL - Schedule a horizontal scroll split IRQ
 # SPRITE_0_SCREEN_SCROLL - Helper function for scheduling a scroll split with sprite 0 (can have CPU cost) (todo)
 
@@ -60,9 +60,9 @@ FIXED_MIRRORING = vertical
 
 SOURCEDIR = src
 BUILDDIR = build
-SYSDIR = sys
+SYSDIR = ../../sys
 RESOURCEDIR = res
-LIBDIR = lib
+LIBDIR = ../../lib
 
 #####################                                        #####################
 ##################### shouldn't need to edit past this point #####################
@@ -140,6 +140,7 @@ ifdef C_SUPPORT
 	CCOPT := -g -Oirs --add-source $(LIBOPTS) $(OPTIONFLAGS)
 	LIBRARIES := nes.lib
 	
+# CFILES := $(SOURCEDIR)/fire.c
 	CFILES := $(wildcard $(SOURCEDIR)/*.c)
 	CASM := $(call SourceToBuildPath,$(CFILES:.c=.s))
 	COBJECTS := $(call SourceToBuildPath,$(CFILES:.c=.o))
@@ -214,7 +215,14 @@ CLEANDIR = $(wildcard $(BUILDDIR))
 
 # TODO: make this work cross platform
 clean:
+# $(info removing $(MAPBUILDDIR) map $(CLEANMAPFILES))
+# $(if $(CLEANMAPFILES),del $(subst /,\,$(CLEANMAPFILES)))
+# $(if $(CLEANMAPDIR),rmdir $(subst /,\,$(CLEANMAPDIR)))
+# $(if $(CLEANFILES),del $(subst /,\,$(CLEANFILES)))
+# $(if $(CLEANDIR),rmdir $(CLEANDIR))
 	$(if $(CLEANFILES), $(shell powershell Remove-Item .\$(BUILDDIR)\* -Force -Recurse))
+# $(info asm objects $(ASMOBJECTS))
+# $(info asm map objects $(ASMMAPOBJS))
 
 $(BUILDDIR):
 	$(if $(wildcard $(BUILDDIR)),,mkdir $@ $(info making $@))

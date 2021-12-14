@@ -1,6 +1,5 @@
 #include "fire.h"
 #include "gray.h"
-#include "features.h"
 #include "rapidfire.h"
 
 #ifdef FAMISTUDIO

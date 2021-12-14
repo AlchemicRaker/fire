@@ -58,6 +58,10 @@ void select_mirror_horizontal();
 #define PPU_ADDR    (*(volatile char *)0x2006)
 #define PPU_DATA    (*(volatile char *)0x2007)
 
+//Controllers
+#define JOY1        (*(volatile char *)0x4016)
+#define JOY2        (*(volatile char *)0x4017)
+
 
 // constants used as options:
 

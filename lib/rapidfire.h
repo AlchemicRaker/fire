@@ -1,4 +1,4 @@
-#include "features.h"
+#include "fire.h"
 
 extern char video_buffer_offset;
 #pragma zpsym ("video_buffer_offset");

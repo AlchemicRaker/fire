@@ -1,9 +1,9 @@
-#include "features.h"
+#include "fire.h"
 
 #ifdef BANK_SUPPORT
 #pragma wrapped-call (push, farcall, bank)
 #endif
-void blue_line(void);
+void gray_line(void);
 #ifdef BANK_SUPPORT
 #pragma wrapped-call (pop)
 #endif
